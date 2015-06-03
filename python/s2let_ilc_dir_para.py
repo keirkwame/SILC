@@ -4,18 +4,18 @@ import math as mh
 import multiprocessing as mg
 import pys2let as ps
 
-def smoothworker(i):
+def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j)
     print "Smoothing another independent covariance element"
     alms = ps.map2alm_mw(i[0],i[1],i[2]) #No pixwin correct. with MW sampling - calc alms to smooth
     #del i[0] #Everything gets moved down one index
     hp.almxfl(alms,i[3],inplace=True) #Multiply by gaussian beam
     
-    '''if i[5] != -1:
+    '''if i[5] != -1: #If n != -1 (i.e. the maps are directional)
         print "Picking out directional component of covariance map"
         #Testing convolving gaussian-smoothed covariance maps with directional wavelet
         jmin_min = 1
-        #Need to truncate alm's to scale_lmax
-        alms_fname = 'alms_' + str(i[6]) + '.fits'
+        #Need to truncate alm's to scale_lmax (Is this necessary?)
+        alms_fname = 'alms_dirwav_' + str(i[7]) + '_' + str(i[5]) + '_' + str(i[6]) + '.fits'
         hp.write_alm(alms_fname,alms,lmax=i[4]-1,mmax=i[4]-1)
         del alms
         alms_truncate = hp.read_alm(alms_fname)
@@ -29,7 +29,7 @@ def smoothworker(i):
             for n in xrange(0,ndir):
                 if n != i[5]:
                     offset,new_scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,i[4],ndir,jmin_min,upsample)
-                    #wav[offset:offset+nelem] = 0.
+                    wav[offset:offset+nelem] = 0.
         print "Synthesising directional covariance map"
         alms = ps.synthesis_wav2lm(wav,scal,wavparam,i[4],jmin_min,ndir,spin,upsample)
         del wav,scal
@@ -106,7 +106,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     #Smooth covariance matrices
     nindepelems = int(nrows*(nrows+1)*.5) #No. independent elements in symmetric covariance matrix
     Rflat = np.reshape(R,(nrows*nrows,len(R[0,0]))) #Flatten first two axes
-    del R #NEW!!!
+    #del R #NEW!!!
     Rflatlen = len(Rflat)
     gausssmooth = hp.gauss_beam(scale_fwhm,smoothing_lmax-1)
     
@@ -135,7 +135,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     #Serial version
     Rsmoothflat = np.zeros_like(Rflat) #Pre-allocate array
     for i in xrange(nindepelems):
-        Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i))
+        Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
     del Rflat
     #Rsmoothflat = np.array(Rsmoothflat)
 
@@ -150,7 +150,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
     #Compute inverse covariance matrices
     Rinv = np.linalg.inv(np.transpose(Rsmoothfat,axes=(2,0,1))) #Parallel vers. actually slower!?
-    del Rsmoothfat
+    #del Rsmoothfat
 
     #Compute weights vectors (at each pixel)
     wknumer = np.sum(Rinv,axis=-1)
@@ -189,14 +189,14 @@ nprocess = 4
 nmaps = 5 #No. maps (WMAP = 5) (Planck = 9)
 ellmax = 1024 #S2LET parameters - actually band-limits to 1 less
 wavparam = 2
-ndir = 1 #No. directions for each wavelet scale
+ndir = 6 #No. directions for each wavelet scale
 spin = 0 #0 for temp, 1 for spin signals
 upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
 jmin = 6
 jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-fitsdir = 'deconv_data/'
-fitsroot = 'wmap_deconv_smoothw_extrapolated_9yr_' #'planck_deconv_'
+fitsdir = '/Users/keir/Documents/s2let_ilc/simu_data/'
+fitsroot = 'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_' #'planck_deconv_'
 fitscode = ['k','ka','q','v','w'] #['30','44','70','100','143','217','353','545','857']
 scal_fits = [None]*nmaps
 wav_fits = [None]*nmaps

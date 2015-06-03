@@ -14,14 +14,14 @@ nprocess = 4
 nmaps = 5 #No. maps (WMAP = 5) (Planck = 9)
 ellmax = 1024 #S2LET parameters - actually band-limits to 1 less
 wavparam = 2
-ndir = 1 #No. directions for each wavelet scale
+ndir = 6 #No. directions for each wavelet scale
 spin = 0 #0 for temp, 1 for spin signals
 upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
 jmin = 6
 jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-fitsdir = 'deconv_data/'
-fitsroot = 'wmap_deconv_smoothw_extrapolated_9yr_' #'planck_deconv_lmax2048_'
+fitsdir = '/Users/keir/Documents/s2let_ilc/simu_data/'
+fitsroot = 'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_' #'planck_deconv_lmax2048_'
 fitscode = ['K','Ka','Q','V','W'] #['30','44','70','100','143','217','353','545','857']
 fitsend = '.fits' #'_pr2.fits'
 fits = [None]*nmaps
@@ -29,7 +29,7 @@ for i in xrange(len(fits)):
     fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
 
 outdir = fitsdir
-outroot = 'wmap_deconv_smoothw_extrapolated_9yr_' #'planck_deconv_'
+outroot = 'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_' #'planck_deconv_'
 outcode = ['k','ka','q','v','w'] #fitscode
 scal_outfits = [None]*nmaps
 wav_outfits = [None]*nmaps

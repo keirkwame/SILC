@@ -16,11 +16,6 @@ def smoothfunc(x,borig): #x is range of ell's
     xmiddle = .5*(x[0]+x[-1])
     alpha = 5./(x[-1] - xmiddle)
     y = (borig * (np.exp(alpha*(x[0] - xmiddle)) + 1.))/(np.exp(alpha*(x - xmiddle)) + 1.)
-    
-    '''alpha = 0.03 #Sets steepness of exponential
-    xmin = x[0]
-    xmax = x[-1]
-    y = (beamvec * (np.exp(alpha*(xmin-x)) - np.exp(alpha*(xmin-xmax)))) / (1. - np.exp(alpha*(xmin-xmax)))'''
     return y
 
 nprocess = 4
