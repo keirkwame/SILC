@@ -182,22 +182,22 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     np.save(wav_outfits,finalmaphalf)
     del finalmaphalf
 
-    return
+    return 0
 
 ##Input
-nprocess = 4
-nmaps = 5 #No. maps (WMAP = 5) (Planck = 9)
-ellmax = 1024 #S2LET parameters - actually band-limits to 1 less
+nprocess = 12
+nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
+ellmax = 2048 #S2LET parameters - actually band-limits to 1 less
 wavparam = 2
-ndir = 6 #No. directions for each wavelet scale
+ndir = 2 #No. directions for each wavelet scale
 spin = 0 #0 for temp, 1 for spin signals
 upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
 jmin = 6
 jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-fitsdir = '/Users/keir/Documents/s2let_ilc/simu_data/'
-fitsroot = 'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_' #'planck_deconv_'
-fitscode = ['k','ka','q','v','w'] #['30','44','70','100','143','217','353','545','857']
+fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc/simu_data/'
+fitsroot = 'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
 scal_fits = [None]*nmaps
 wav_fits = [None]*nmaps
 for i in xrange(len(scal_fits)):
@@ -237,6 +237,10 @@ for j in xrange(jmin,jmax+1): #Loop over scales
         i += 1
 del wav_maps
 
+print "Have reached here"
 pool = mg.Pool(nprocess)
-wav_output = pool.map_async(s2let_ilc_dir_para,mapsextra)
-del mapsextra
+print "Have reached here (2)"
+wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
+#pool.close()
+#pool.join()
+#del mapsextra

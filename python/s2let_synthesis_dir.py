@@ -6,18 +6,18 @@ import multiprocessing as mg
 import pys2let as ps
 
 ##Input
-nprocess = 4
-outnside = 512
-ellmax = 1024 #S2LET parameters - actually band-limits to 1 less
+nprocess = 1
+outnside = 1024
+ellmax = 2048 #S2LET parameters - actually band-limits to 1 less
 wavparam = 2
-ndir = 6 #No. directions for each wavelet scale
+ndir = 2 #No. directions for each wavelet scale
 spin = 0 #0 for temp, 1 for spin signals
 upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
 jmin = 6
 jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-fitsdir = '/Users/keir/Documents/s2let_ilc/simu_data/'
-fitsroot = 's2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_' #'s2let_ilc_dir_para_gauss_planck_deconv_'
+fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc/simu_data/'
+fitsroot = 's2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
 fitsend = '.fits'
 scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
 wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
