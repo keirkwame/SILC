@@ -102,6 +102,8 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     pool2 = mg.Pool(nprocess2)
     mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
     mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
+    pool2.close()
+    pool2.join()
     del mapsextra2
     #Serial version
     '''mapsdouble = np.zeros((nrows,ps.mw_size(smoothing_lmax)),dtype=np.complex128) #Pre-allocate array
@@ -150,6 +152,8 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     Rflatextra = [(Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
     del Rflat
     Rsmoothflat = np.array(pool3.map(smoothworker,Rflatextra))
+    pool3.close()
+    pool3.join()
     del Rflatextra
     #Serial version
     '''Rsmoothflat = np.zeros_like(Rflat) #Pre-allocate array
@@ -259,8 +263,8 @@ if __name__ == "__main__":
 
     pool = mg.Pool(nprocess)
     wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
-    #pool.close()
-    #pool.join()
+    pool.close()
+    pool.join()
     del mapsextra
 
 
