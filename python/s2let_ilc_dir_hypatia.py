@@ -116,7 +116,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
     #Doubling lmax for input maps with zero-padding
-    nprocess2 = 2
+    nprocess2 = 3
     pool2 = mg.Pool(nprocess2)
     mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
     mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
@@ -165,7 +165,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
         Rsmoothflat[i] = ps.alm2map_mw(alms[i],scale_lmax,spin) #Smooth covariance in MW
     Rsmoothflat = np.array(Rsmoothflat)'''
     #Parallel version
-    nprocess3 = 2
+    nprocess3 = 3
     pool3 = mg.Pool(nprocess3)
     Rflatextra = [(Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
     del Rflat
@@ -227,7 +227,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 2
+    nprocess = 14
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
