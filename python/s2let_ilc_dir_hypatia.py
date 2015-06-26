@@ -4,6 +4,21 @@ import math as mh
 import multiprocessing as mg
 import pys2let as ps
 
+def zeropad(i): #(alms,scale_lmax,smoothing_lmax,spin)
+    print "Zero-padding the alm's"
+    nzeros = i[2] - i[1] #No. zeros to pad
+    new_alms_temp = np.concatenate((i[0][:i[1]],np.zeros(nzeros)))
+    for em in xrange(1,i[1]):
+        startindex = em*i[1] - .5*em*(em-1)
+        new_alms_temp = np.concatenate((new_alms_temp,i[0][startindex:(startindex+i[1]-em)],np.zeros(nzeros)))
+    del alms
+    print "Temporary length of alm's =", len(new_alms_temp)
+    nfinalzeros = hp.Alm.getsize(i[2]-1) - len(new_alms_temp)
+    new_alms_temp = np.concatenate((new_alms_temp,np.zeros(nfinalzeros)))
+    print "Final length of alm's =", len(new_alms_temp)
+
+    return new_alms_temp
+
 def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j)
     print "Smoothing another independent covariance element"
     alms = ps.map2alm_mw(i[0],i[1],i[2]) #No pixwin correct. with MW sampling - calc alms to smooth
@@ -48,6 +63,9 @@ def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j
         print "Final length of alm's =", len(alms)'''
     
     #hp.almxfl(alms,i[3],inplace=True) #Multiply by gaussian beam
+    
+    alms = zeropad(alms,i[4],i[1],i[2])
+    
     print "Synthesising smoothed covariance map"
     Rsmoothflat = ps.alm2map_mw(alms,i[1],i[2]) #Smooth covariance in MW - calc final map to scale
     del alms
@@ -80,22 +98,22 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
     #Doubling lmax for input maps with zero-padding
-    '''pool = mg.Pool(nprocess)
-    mapsextra = [(maps[i],scale_lmax,smoothing_lmax,spin) for i in xrange(nrows)]
-    del maps
-    mapsdouble = np.array(pool.map(doubleworker,mapsextra))
-    del mapsextra'''
+    nprocess2 = 3
+    pool2 = mg.Pool(nprocess2)
+    mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
+    mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
+    del mapsextra2
     #Serial version
-    mapsdouble = np.zeros((nrows,ps.mw_size(smoothing_lmax)),dtype=np.complex128) #Pre-allocate array
+    '''mapsdouble = np.zeros((nrows,ps.mw_size(smoothing_lmax)),dtype=np.complex128) #Pre-allocate array
     for i in xrange(nrows):
-        mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))
+        mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #mapsdouble = np.array(mapsdouble)
     
-    #Calculating covariance matrix (at each pixel)
+    #Calculating covariance matrix (at each pixel) [AT LOWER RES!]
     #R = [None]*len(mapsdouble)
-    R = np.zeros((len(mapsdouble),len(mapsdouble),len(mapsdouble[0])),dtype=np.complex128) #Pre-allocate array
-    for i in xrange(len(mapsdouble)):
-        R[i,:,:] = np.multiply(mapsdouble,np.roll(mapsdouble,-i,axis=0))
+    R = np.zeros((len(mapsextra[0]),len(mapsextra[0]),len(mapsextra[0][0])),dtype=np.complex128) #Pre-allocate array
+    for i in xrange(len(mapsextra[0])):
+        R[i,:,:] = np.multiply(mapsextra[0],np.roll(mapsextra[0],-i,axis=0))
     #R = np.array(R)
     
     #Calculate scale_fwhm & smoothing_lmax
@@ -108,11 +126,11 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     Rflat = np.reshape(R,(nrows*nrows,len(R[0,0]))) #Flatten first two axes
     #del R #NEW!!!
     Rflatlen = len(Rflat)
-    gausssmooth = hp.gauss_beam(scale_fwhm,smoothing_lmax-1)
+    gausssmooth = hp.gauss_beam(scale_fwhm,mapsextra[1]-1)
     
     #Testing zero-ing gaussian smoothing beam
-    gauss_lmax = mapsextra[1]
-    gausssmooth[gauss_lmax:] = 0.
+    '''gauss_lmax = mapsextra[1]
+    gausssmooth[gauss_lmax:] = 0.'''
     
     '''alms = [None]*nindepelems
     #alms_hp = [None]*nindepelems
@@ -127,16 +145,17 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
         Rsmoothflat[i] = ps.alm2map_mw(alms[i],scale_lmax,spin) #Smooth covariance in MW
     Rsmoothflat = np.array(Rsmoothflat)'''
     #Parallel version
-    '''pool = mg.Pool(nprocess)
-    Rflatextra = [(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,en,i) for i in xrange(nindepelems)]
+    nprocess3 = 3
+    pool3 = mg.Pool(nprocess3)
+    Rflatextra = [(Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
     del Rflat
-    Rsmoothflat = np.array(pool.map(smoothworker,Rflatextra))
-    del Rflatextra'''
+    Rsmoothflat = np.array(pool3.map(smoothworker,Rflatextra))
+    del Rflatextra
     #Serial version
-    Rsmoothflat = np.zeros_like(Rflat) #Pre-allocate array
+    '''Rsmoothflat = np.zeros_like(Rflat) #Pre-allocate array
     for i in xrange(nindepelems):
         Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
-    del Rflat
+    del Rflat'''
     #Rsmoothflat = np.array(Rsmoothflat)
 
     #Rearranging and padding out elements of Rsmooth
@@ -186,9 +205,9 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 12
+    nprocess = 14
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 2048 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
     ndir = 2 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
@@ -206,7 +225,7 @@ if __name__ == "__main__":
         wav_fits[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
 
     outdir = fitsdir
-    outroot = 's2let_ilc_dir_para_gauss_' + fitsroot
+    outroot = 's2let_ilc_dir_hypatia_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
@@ -238,10 +257,10 @@ if __name__ == "__main__":
             i += 1
     del wav_maps
 
-    print "Have reached here"
     pool = mg.Pool(nprocess)
-    print "Have reached here (2)"
     wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
     #pool.close()
     #pool.join()
-    #del mapsextra
+    del mapsextra
+
+
