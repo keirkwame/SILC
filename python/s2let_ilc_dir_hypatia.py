@@ -2,7 +2,22 @@ import numpy as np
 import healpy as hp
 import math as mh
 import multiprocessing as mg
+import multiprocessing.pool
 import pys2let as ps
+
+#From http://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
+class NoDaemonProcess(mg.Process):
+    # make 'daemon' attribute always return False
+    def _get_daemon(self):
+        return False
+    def _set_daemon(self, value):
+        pass
+    daemon = property(_get_daemon, _set_daemon)
+
+# We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+# because the latter is only a wrapper function, not a proper class.
+class MyPool(mg.pool.Pool):
+    Process = NoDaemonProcess
 
 def zeropad(i): #(alms,scale_lmax,smoothing_lmax,spin)
     print "Zero-padding the alm's"
@@ -11,7 +26,7 @@ def zeropad(i): #(alms,scale_lmax,smoothing_lmax,spin)
     for em in xrange(1,i[1]):
         startindex = em*i[1] - .5*em*(em-1)
         new_alms_temp = np.concatenate((new_alms_temp,i[0][startindex:(startindex+i[1]-em)],np.zeros(nzeros)))
-    del alms
+    #del alms
     print "Temporary length of alm's =", len(new_alms_temp)
     nfinalzeros = hp.Alm.getsize(i[2]-1) - len(new_alms_temp)
     new_alms_temp = np.concatenate((new_alms_temp,np.zeros(nfinalzeros)))
@@ -64,11 +79,13 @@ def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j
     
     #hp.almxfl(alms,i[3],inplace=True) #Multiply by gaussian beam
     
-    alms = zeropad(alms,i[4],i[1],i[2])
+    '''alms2 = zeropad((alms,i[4],i[1],i[2]))
+    del alms'''
     
     print "Synthesising smoothed covariance map"
     Rsmoothflat = ps.alm2map_mw(alms,i[1],i[2]) #Smooth covariance in MW - calc final map to scale
     del alms
+
     return Rsmoothflat
 
 def doubleworker(i):
@@ -90,6 +107,7 @@ def doubleworker(i):
 
     mapsdouble = ps.alm2map_mw(new_alms_temp,i[2],i[3])
     del new_alms_temp
+
     return mapsdouble
 
 def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
@@ -98,7 +116,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
     #Doubling lmax for input maps with zero-padding
-    nprocess2 = 3
+    nprocess2 = 2
     pool2 = mg.Pool(nprocess2)
     mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
     mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
@@ -113,9 +131,9 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     
     #Calculating covariance matrix (at each pixel) [AT LOWER RES!]
     #R = [None]*len(mapsdouble)
-    R = np.zeros((len(mapsextra[0]),len(mapsextra[0]),len(mapsextra[0][0])),dtype=np.complex128) #Pre-allocate array
-    for i in xrange(len(mapsextra[0])):
-        R[i,:,:] = np.multiply(mapsextra[0],np.roll(mapsextra[0],-i,axis=0))
+    R = np.zeros((len(mapsdouble),len(mapsdouble),len(mapsdouble[0])),dtype=np.complex128) #Pre-allocate array
+    for i in xrange(len(mapsdouble)):
+        R[i,:,:] = np.multiply(mapsdouble,np.roll(mapsdouble,-i,axis=0))
     #R = np.array(R)
     
     #Calculate scale_fwhm & smoothing_lmax
@@ -147,7 +165,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
         Rsmoothflat[i] = ps.alm2map_mw(alms[i],scale_lmax,spin) #Smooth covariance in MW
     Rsmoothflat = np.array(Rsmoothflat)'''
     #Parallel version
-    nprocess3 = 3
+    nprocess3 = 2
     pool3 = mg.Pool(nprocess3)
     Rflatextra = [(Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
     del Rflat
@@ -209,7 +227,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 14
+    nprocess = 2
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
@@ -219,7 +237,7 @@ if __name__ == "__main__":
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc/simu_data/'
+    fitsdir =  '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
     fitsroot = 'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
@@ -243,6 +261,7 @@ if __name__ == "__main__":
     scaling_lmax = wavparam**jmin
     print "Running Directional S2LET ILC on scaling function"
     scal_output = s2let_ilc_dir_para((scal_maps,scaling_lmax,spin,-1,-1,0)) #n,j=-1 signifies scaling func.
+    print "Here"
     del scal_maps
 
     #Load wavelet maps for each channel
@@ -256,12 +275,14 @@ if __name__ == "__main__":
     i = 0
     for j in xrange(jmin,jmax+1): #Loop over scales
         for n in xrange(0,ndir): #Loop over directions
+            print "Here2", j, n
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             mapsextra[i] = (wav_maps[:,offset:offset+nelem],scale_lmax,spin,n,j,i)
             i += 1
     del wav_maps
 
-    pool = mg.Pool(nprocess)
+    pool = MyPool(nprocess)
+    print "Here3"
     wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
     pool.close()
     pool.join()
