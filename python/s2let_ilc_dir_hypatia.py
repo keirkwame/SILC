@@ -19,25 +19,9 @@ class NoDaemonProcess(mg.Process):
 class MyPool(mg.pool.Pool):
     Process = NoDaemonProcess
 
-def zeropad(i): #(alms,scale_lmax,smoothing_lmax,spin)
-    print "Zero-padding the alm's"
-    nzeros = i[2] - i[1] #No. zeros to pad
-    new_alms_temp = np.concatenate((i[0][:i[1]],np.zeros(nzeros)))
-    for em in xrange(1,i[1]):
-        startindex = em*i[1] - .5*em*(em-1)
-        new_alms_temp = np.concatenate((new_alms_temp,i[0][startindex:(startindex+i[1]-em)],np.zeros(nzeros)))
-    #del alms
-    print "Temporary length of alm's =", len(new_alms_temp)
-    nfinalzeros = hp.Alm.getsize(i[2]-1) - len(new_alms_temp)
-    new_alms_temp = np.concatenate((new_alms_temp,np.zeros(nfinalzeros)))
-    print "Final length of alm's =", len(new_alms_temp)
-
-    return new_alms_temp
-
 def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j)
     print "Smoothing another independent covariance element"
-    alms = ps.map2alm_mw(i[0],i[1],i[2]) #No pixwin correct. with MW sampling - calc alms to smooth
-    #del i[0] #Everything gets moved down one index
+    alms = ps.map2alm_mw(i[0],i[1],i[2]) #No pixwin correct. with MW - calc alms to smooth
     hp.almxfl(alms,i[3],inplace=True) #Multiply by gaussian beam
     
     '''if i[5] != -1: #If n != -1 (i.e. the maps are directional)
@@ -76,38 +60,31 @@ def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j
         alms = np.concatenate((new_alms_temp,np.zeros(nfinalzeros)))
         del new_alms_temp
         print "Final length of alm's =", len(alms)'''
-    
-    #hp.almxfl(alms,i[3],inplace=True) #Multiply by gaussian beam
-    
-    '''alms2 = zeropad((alms,i[4],i[1],i[2]))
-    del alms'''
-    
-    print "Synthesising smoothed covariance map"
-    Rsmoothflat = ps.alm2map_mw(alms,i[1],i[2]) #Smooth covariance in MW - calc final map to scale
-    del alms
 
+    print "Synthesising smoothed covariance map"
+    Rsmoothflat = ps.alm2map_mw(alms,i[1],i[2]) #Smooth covar in MW - calc final map to scale
+    del alms
     return Rsmoothflat
 
-def doubleworker(i):
-    print "Doubling l_max of another input map"
-    alms = ps.map2alm_mw(i[0],i[1],i[3]) #alm's to l(j)
-    #del i[0] #Everything gets moved down one index
-    
+def zeropad(i): #(alms,scale_lmax,smoothing_lmax,spin)
     print "Zero-padding the alm's"
-    nzeros = i[2] - i[1] #No. zeros to pad
-    new_alms_temp = np.concatenate((alms[:i[1]],np.zeros(nzeros)))
+    nzeros = i[2] - i[1] #No. zeros to pad at each m
+    new_alms_temp = np.concatenate((i[0][:i[1]],np.zeros(nzeros)))
     for em in xrange(1,i[1]):
         startindex = em*i[1] - .5*em*(em-1)
-        new_alms_temp = np.concatenate((new_alms_temp,alms[startindex:(startindex+i[1]-em)],np.zeros(nzeros)))
-    del alms
-    print "Temporary length of alm's =", len(new_alms_temp)
+        new_alms_temp = np.concatenate((new_alms_temp,i[0][startindex:(startindex+i[1]-em)],np.zeros(nzeros)))
+    #print "Temporary length of alm's =", len(new_alms_temp)
     nfinalzeros = hp.Alm.getsize(i[2]-1) - len(new_alms_temp)
     new_alms_temp = np.concatenate((new_alms_temp,np.zeros(nfinalzeros)))
     print "Final length of alm's =", len(new_alms_temp)
+    return new_alms_temp
 
-    mapsdouble = ps.alm2map_mw(new_alms_temp,i[2],i[3])
-    del new_alms_temp
-
+def doubleworker(i): #i = (maps[i],scale_lmax,smoothing_lmax,spin)
+    print "Doubling l_max of another input map"
+    alms = ps.map2alm_mw(i[0],i[1],i[3]) #alm's to l(j)
+    alms = zeropad((alms,i[1],i[2],i[3]))
+    mapsdouble = ps.alm2map_mw(alms,i[2],i[3])
+    del alms
     return mapsdouble
 
 def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
@@ -116,83 +93,62 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
     #Doubling lmax for input maps with zero-padding
-    nprocess2 = 3
-    pool2 = mg.Pool(nprocess2)
-    mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
-    mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
-    pool2.close()
-    pool2.join()
-    del mapsextra2
     #Serial version
     '''mapsdouble = np.zeros((nrows,ps.mw_size(smoothing_lmax)),dtype=np.complex128) #Pre-allocate array
     for i in xrange(nrows):
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
-    #mapsdouble = np.array(mapsdouble)
+    #Parallel version
+    mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
+    nprocess2 = 3
+    pool2 = mg.Pool(nprocess2)
+    mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
+    pool2.close()
+    pool2.join()
+    del mapsextra2
     
-    #Calculating covariance matrix (at each pixel) [AT LOWER RES!]
-    #R = [None]*len(mapsdouble)
+    #Calculating covariance matrix (at each pixel)
+    print "Calculating covariance matrices"
     R = np.zeros((len(mapsdouble),len(mapsdouble),len(mapsdouble[0])),dtype=np.complex128) #Pre-allocate array
     for i in xrange(len(mapsdouble)):
         R[i,:,:] = np.multiply(mapsdouble,np.roll(mapsdouble,-i,axis=0))
-    #R = np.array(R)
-    
-    #Calculate scale_fwhm & smoothing_lmax
+
+    #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
-    #npix = hp.nside2npix(0.5*mapsextra[1]) #Equivalent number of HEALPix pixels
-    npix = 12*((0.5*mapsextra[1])**2)
+    npix = 12*((0.5*mapsextra[1])**2) #Equivalent number of HEALPix pixels
     scale_fwhm = 4. * mh.sqrt(nsamp / npix)
     
     #Smooth covariance matrices
-    nindepelems = int(nrows*(nrows+1)*.5) #No. independent elements in symmetric covariance matrix
-    Rflat = np.reshape(R,(nrows*nrows,len(R[0,0]))) #Flatten first two axes
-    #del R #NEW!!!
-    Rflatlen = len(Rflat)
-    gausssmooth = hp.gauss_beam(scale_fwhm,mapsextra[1]-1)
-    
-    #Testing zero-ing gaussian smoothing beam
-    '''gauss_lmax = mapsextra[1]
-    gausssmooth[gauss_lmax:] = 0.'''
-    
-    '''alms = [None]*nindepelems
-    #alms_hp = [None]*nindepelems
-    #alms_smooth = [None]*nindepelems
-    Rsmoothflat = [None]*nindepelems #Only really need to pre-allocate this
-    for i in xrange(nindepelems): #PARALLELISE
-        print "Smoothing independent covariance element", i+1, "/", nindepelems
-        alms[i] = ps.map2alm_mw(Rflat[i],scale_lmax,spin) #No pixwin correct. with MW sampling
-        #alms_hp[i] = ps.lm2lm_hp(alms[i],smoothing_lmax) #Now in healpy ordering
-        hp.almxfl(alms[i],gausssmooth,inplace=True) #Multiply by gaussian beam
-        #alms_smooth[i] = ps.lm_hp2lm(alms_hp[i],smoothing_lmax) #Back in MW ordering
-        Rsmoothflat[i] = ps.alm2map_mw(alms[i],scale_lmax,spin) #Smooth covariance in MW
-    Rsmoothflat = np.array(Rsmoothflat)'''
-    #Parallel version
-    nprocess3 = 3
-    pool3 = mg.Pool(nprocess3)
-    Rflatextra = [(Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
-    del Rflat
-    Rsmoothflat = np.array(pool3.map(smoothworker,Rflatextra))
-    pool3.close()
-    pool3.join()
-    del Rflatextra
+    nindepelems = int(nrows*(nrows+1)*.5) #No. indep. elements in symmetric covariance matrix
+    R.reshape((nrows*nrows,len(R[0,0]))) #Flatten first two axes
+    Rflatlen = len(R)
+    gausssmooth = hp.gauss_beam(scale_fwhm,smoothing_lmax-1)
     #Serial version
     '''Rsmoothflat = np.zeros_like(Rflat) #Pre-allocate array
     for i in xrange(nindepelems):
         Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
     del Rflat'''
-    #Rsmoothflat = np.array(Rsmoothflat)
+    #Parallel version
+    nprocess3 = 3
+    pool3 = mg.Pool(nprocess3)
+    Rextra = [(R[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
+    del R
+    Rsmooth = np.array(pool3.map(smoothworker,Rextra))
+    pool3.close()
+    pool3.join()
+    del Rextra
 
     #Rearranging and padding out elements of Rsmooth
-    Rsmoothflat[:nrows] = 0.5*Rsmoothflat[:nrows] #Multiply diag elements by half- not double-count
-    Rsmoothflat = np.vstack((Rsmoothflat,np.zeros((Rflatlen-len(Rsmoothflat),len(Rsmoothflat[0]))))) #Zero-pad
-    Rsmoothfat = np.reshape(Rsmoothflat,(nrows,nrows,len(Rsmoothflat[0]))) #Reshape Rsmooth as mat.
-    del Rsmoothflat
-    for i in xrange(1,len(Rsmoothfat[0])):
-        Rsmoothfat[:,i,:] = np.roll(Rsmoothfat[:,i,:],i,axis=0) #Now in correct order-but with gaps
-    Rsmoothfat = Rsmoothfat + np.transpose(Rsmoothfat,axes=(1,0,2)) #Gaps filled in
+    Rsmooth[:nrows] = 0.5*Rsmooth[:nrows] #Mult diag elems by half - not double-count
+    Rsmooth = np.vstack((Rsmooth,np.zeros((Rflatlen-len(Rsmooth),len(Rsmooth[0]))))) #Zero-pad
+    np.reshape(Rsmooth,(nrows,nrows,len(Rsmooth[0]))) #Reshape Rsmooth as mat.
+    for i in xrange(1,len(Rsmooth[0])):
+        Rsmooth[:,i,:] = np.roll(Rsmooth[:,i,:],i,axis=0) #Now in correct order-but with gaps
+    Rsmooth = Rsmooth + np.transpose(Rsmooth,axes=(1,0,2)) #Gaps filled in
 
     #Compute inverse covariance matrices
-    Rinv = np.linalg.inv(np.transpose(Rsmoothfat,axes=(2,0,1))) #Parallel vers. actually slower!?
-    #del Rsmoothfat
+    print "Calculating inverse covariance matrices"
+    Rinv = np.linalg.inv(np.transpose(Rsmooth,axes=(2,0,1))) #Parallel vers. slower!?
+    del Rsmooth
 
     #Compute weights vectors (at each pixel)
     wknumer = np.sum(Rinv,axis=-1)
@@ -209,7 +165,6 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     print "Downgrading resolution of CMB wavelet map"
     finalmapalms = ps.map2alm_mw(finalmap,smoothing_lmax,mapsextra[2])
     del finalmap
-    #hp.write_alm('alms.fits',finalmapalms,lmax=mapsextra[1]-1,mmax=mapsextra[1]-1)
     alms_fname = 'alms_' + str(mapsextra[5]) + '.fits'
     hp.write_alm(alms_fname,finalmapalms,lmax=mapsextra[1]-1,mmax=mapsextra[1]-1)
     del finalmapalms
@@ -228,7 +183,6 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 14
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
@@ -255,6 +209,7 @@ if __name__ == "__main__":
     #Load scaling function maps for each channel
     scal_maps = [None]*nmaps
     for i in xrange(len(scal_maps)):
+        print "Loading scaling function maps"
         scal_maps[i] = np.load(scal_fits[i])
     scal_maps = np.array(scal_maps)
 
@@ -262,29 +217,33 @@ if __name__ == "__main__":
     scaling_lmax = wavparam**jmin
     print "Running Directional S2LET ILC on scaling function"
     scal_output = s2let_ilc_dir_para((scal_maps,scaling_lmax,spin,-1,-1,0)) #n,j=-1 signifies scaling func.
-    print "Here"
+    print "Finished running Directional S2LET ILC on scaling function"
     del scal_maps
 
     #Load wavelet maps for each channel
     wav_maps = [None]*nmaps
     for i in xrange(len(wav_maps)):
-        wav_maps[i] = np.load(wav_fits[i])
+        print "Loading wavelet maps for map", i+1, "/", len(wav_maps)
+        wav_maps[i] = np.load(wav_fits[i],mmap_mode='r') #Maps still only stored on disk
     wav_maps = np.array(wav_maps) #1.1Gb!!!
 
     #Run ILC on wavelet maps in PARALLEL
-    mapsextra = [None]*(jmax+1-(jmin))*(ndir)
-    #mapsextra = [None]*4
+    jmin_real = jmin
+    jmax_real = jmin
+
+    mapsextra = [None]*(jmax_real+1-(jmin_real))*(ndir)
     i = 0
-    for j in xrange(jmin,jmax+1): #Loop over scales
+    for j in xrange(jmin_real,jmax_real+1): #Loop over scales
         for n in xrange(0,ndir): #Loop over directions
-            print "Here2", j, n
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
+            print "Forming input data structure for scale", j, "direction", n+1
             mapsextra[i] = (wav_maps[:,offset:offset+nelem],scale_lmax,spin,n,j,i)
             i += 1
     del wav_maps
 
+    nprocess = 
     pool = MyPool(nprocess)
-    print "Here3"
+    print "Farming out workers to run Directional S2LET ILC on wavelet scales"
     wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
     pool.close()
     pool.join()
