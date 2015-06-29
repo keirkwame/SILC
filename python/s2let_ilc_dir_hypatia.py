@@ -138,7 +138,8 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     
     #Calculate scale_fwhm & smoothing_lmax
     nsamp = 1200.
-    npix = hp.nside2npix(0.5*mapsextra[1]) #Equivalent number of HEALPix pixels
+    #npix = hp.nside2npix(0.5*mapsextra[1]) #Equivalent number of HEALPix pixels
+    npix = 12*((0.5*mapsextra[1])**2)
     scale_fwhm = 4. * mh.sqrt(nsamp / npix)
     
     #Smooth covariance matrices
@@ -272,6 +273,7 @@ if __name__ == "__main__":
 
     #Run ILC on wavelet maps in PARALLEL
     mapsextra = [None]*(jmax+1-(jmin))*(ndir)
+    #mapsextra = [None]*4
     i = 0
     for j in xrange(jmin,jmax+1): #Loop over scales
         for n in xrange(0,ndir): #Loop over directions
