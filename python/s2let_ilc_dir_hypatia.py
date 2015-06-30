@@ -136,7 +136,7 @@ def doubleworker(i): #i = (maps[i],scale_lmax,smoothing_lmax,spin)
 
 def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     print "\nRunning Directional S2LET ILC on wavelet scale", mapsextra[4], "/", jmax, "direction", mapsextra[3]+1, "/", ndir, "\n"
-    nrows = len(mapsextra[0]) #No. rows in covar. matrix
+    nrows = len(mapsextra[0].value) #No. rows in covar. matrix
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
     #Doubling lmax for input maps with zero-padding
@@ -146,7 +146,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #Parallel version
     print "Started packing input data for doubling"
-    mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
+    mapsextra2 = [(mapsextra[0].value[i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
     print "Finished packing input data for doubling"
     nprocess2 = 9
     print "Here"
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir =  '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsdir =  '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
     fitsroot = 'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
@@ -291,7 +291,7 @@ if __name__ == "__main__":
         for n in xrange(0,2): #Loop over directions
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             print "Forming input data structure for scale", j, "direction", n+1
-            mapsextra[i] = ForkedData((wav_maps[:,offset:offset+nelem],scale_lmax,spin,n,j,i))
+            mapsextra[i] = (ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,spin,n,j,i)
             i += 1
     del wav_maps
 
