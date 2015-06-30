@@ -4,6 +4,53 @@ import math as mh
 import multiprocessing as mg
 import multiprocessing.pool
 import pys2let as ps
+import random
+import string
+import itertools
+import os
+
+#From http://stackoverflow.com/questions/15118344/system-error-while-running-subprocesses-using-multiprocessing
+### A helper for letting the forked processes use data without pickling.
+_data_name_cands = (
+    '_data_' + ''.join(random.sample(string.ascii_lowercase, 10))
+    for _ in itertools.count())
+class ForkedData(object):
+    '''
+    Class used to pass data to child processes in multiprocessing without
+    really pickling/unpickling it. Only works on POSIX.
+
+    Intended use:
+        - The master process makes the data somehow, and does e.g.
+            data = ForkedData(the_value)
+        - The master makes sure to keep a reference to the ForkedData object
+          until the children are all done with it, since the global reference
+          is deleted to avoid memory leaks when the ForkedData object dies.
+        - Master process constructs a multiprocessing.Pool *after*
+          the ForkedData construction, so that the forked processes
+          inherit the new global.
+        - Master calls e.g. pool.map with data as an argument.
+        - Child gets the real value through data.value, and uses it read-only.
+    '''
+    # TODO: does data really need to be used read-only? don't think so...
+    # TODO: more flexible garbage collection options
+    def __init__(self, val):
+        g = globals()
+        self.name = next(n for n in _data_name_cands if n not in g)
+        g[self.name] = val
+        self.master_pid = os.getpid()
+
+    def __getstate__(self):
+        if os.name != 'posix':
+            raise RuntimeError("ForkedData only works on OSes with fork()")
+        return self.__dict__
+
+    @property
+    def value(self):
+        return globals()[self.name]
+
+    def __del__(self):
+        if os.getpid() == self.master_pid:
+            del globals()[self.name]
 
 #From http://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
 class NoDaemonProcess(mg.Process):
@@ -98,10 +145,15 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     for i in xrange(nrows):
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #Parallel version
+    print "Started packing input data for doubling"
     mapsextra2 = [(mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
-    nprocess2 = 3
+    print "Finished packing input data for doubling"
+    nprocess2 = 9
+    print "Here"
     pool2 = mg.Pool(nprocess2)
+    print "Farming out workers to run doubling function"
     mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
+    print "Have returned from doubling workers"
     pool2.close()
     pool2.join()
     del mapsextra2
@@ -119,7 +171,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     
     #Smooth covariance matrices
     nindepelems = int(nrows*(nrows+1)*.5) #No. indep. elements in symmetric covariance matrix
-    R.reshape((nrows*nrows,len(R[0,0]))) #Flatten first two axes
+    R = np.reshape(R,(nrows*nrows,len(R[0,0]))) #Flatten first two axes
     Rflatlen = len(R)
     gausssmooth = hp.gauss_beam(scale_fwhm,smoothing_lmax-1)
     #Serial version
@@ -128,10 +180,12 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
         Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
     del Rflat'''
     #Parallel version
-    nprocess3 = 3
-    pool3 = mg.Pool(nprocess3)
+    print "Started packing input data for smoothing"
     Rextra = [(R[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
+    print "Finished packing input data for doubling"
     del R
+    nprocess3 = 23
+    pool3 = mg.Pool(nprocess3)
     Rsmooth = np.array(pool3.map(smoothworker,Rextra))
     pool3.close()
     pool3.join()
@@ -140,7 +194,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     #Rearranging and padding out elements of Rsmooth
     Rsmooth[:nrows] = 0.5*Rsmooth[:nrows] #Mult diag elems by half - not double-count
     Rsmooth = np.vstack((Rsmooth,np.zeros((Rflatlen-len(Rsmooth),len(Rsmooth[0]))))) #Zero-pad
-    np.reshape(Rsmooth,(nrows,nrows,len(Rsmooth[0]))) #Reshape Rsmooth as mat.
+    Rsmooth = np.reshape(Rsmooth,(nrows,nrows,len(Rsmooth[0]))) #Reshape Rsmooth as mat.
     for i in xrange(1,len(Rsmooth[0])):
         Rsmooth[:,i,:] = np.roll(Rsmooth[:,i,:],i,axis=0) #Now in correct order-but with gaps
     Rsmooth = Rsmooth + np.transpose(Rsmooth,axes=(1,0,2)) #Gaps filled in
@@ -207,9 +261,9 @@ if __name__ == "__main__":
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
     #Load scaling function maps for each channel
-    scal_maps = [None]*nmaps
+    '''scal_maps = [None]*nmaps
     for i in xrange(len(scal_maps)):
-        print "Loading scaling function maps"
+        print "Loading scaling function maps for channel", i+1, "/", len(scal_maps)
         scal_maps[i] = np.load(scal_fits[i])
     scal_maps = np.array(scal_maps)
 
@@ -218,7 +272,7 @@ if __name__ == "__main__":
     print "Running Directional S2LET ILC on scaling function"
     scal_output = s2let_ilc_dir_para((scal_maps,scaling_lmax,spin,-1,-1,0)) #n,j=-1 signifies scaling func.
     print "Finished running Directional S2LET ILC on scaling function"
-    del scal_maps
+    del scal_maps'''
 
     #Load wavelet maps for each channel
     wav_maps = [None]*nmaps
@@ -228,25 +282,30 @@ if __name__ == "__main__":
     wav_maps = np.array(wav_maps) #1.1Gb!!!
 
     #Run ILC on wavelet maps in PARALLEL
-    jmin_real = jmin
-    jmax_real = jmin
+    jmin_real = 6
+    jmax_real = 6
 
-    mapsextra = [None]*(jmax_real+1-(jmin_real))*(ndir)
+    mapsextra = [None]*(jmax_real+1-(jmin_real))*2
     i = 0
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
-        for n in xrange(0,ndir): #Loop over directions
+        for n in xrange(0,2): #Loop over directions
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             print "Forming input data structure for scale", j, "direction", n+1
-            mapsextra[i] = (wav_maps[:,offset:offset+nelem],scale_lmax,spin,n,j,i)
+            mapsextra[i] = ForkedData((wav_maps[:,offset:offset+nelem],scale_lmax,spin,n,j,i))
             i += 1
     del wav_maps
 
-    nprocess = 
+    nprocess = 2
+    print "Forming non-pickleable data objects"
+    #mapsextra_forked = ForkedData(mapsextra)
+    print "Finished forming non-pickleable data objects"
     pool = MyPool(nprocess)
     print "Farming out workers to run Directional S2LET ILC on wavelet scales"
     wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
     pool.close()
     pool.join()
+    #wav_output = s2let_ilc_dir_para(mapsextra)
     del mapsextra
+    del mapsextra_forked
 
 
