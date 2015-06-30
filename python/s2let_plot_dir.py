@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 
 #Changing input for S2LET ILC
 #scal_maps = np.load('../s2let_ilc/deconv_data/s2let_ilc_dir_para_gauss_wmap_deconv_smoothw_extrapolated_9yr_scal_1024_2_6_3.npy') #WMAP
-scal_maps = np.load('/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_para_gauss_planck_deconv_scal_1024_2_6_2.npy') #Planck
+#scal_maps = np.load('/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_planck_deconv_scal_3400_2_6_2.npy') #Planck
 #scal_maps = scal_planck*1000 - scal_maps #Residual
 #wav_maps = np.load('simu_data/s2let_ilc_dir_simu_dirty_beam_wmap_9yr_wav_1024_2_6_3.npy')
+wav_sing_map = np.load('/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_planck_deconv_wav_3400_2_6_2_j12_n1.npy')
 #R_maps = np.load('/Users/keir/Documents/s2let_ilc/deconv_data/s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_wav_1024_2_6_2_j6_n2_Rsingwavscal4.npy')
 #R_maps2 = np.load('/Users/keir/Documents/s2let_ilc/deconv_data/s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_wav_1024_2_6_2_j6_n1_Rsmoothfatsingwavscal4.npy')
 #R_maps_resid = R_maps - R_maps2
@@ -18,7 +19,7 @@ ndir = 2
 upsample = 0
 jmin = 6
 jmax = pys2let_j_max(wavparam,ellmax,jmin)
-LIM = 0.0002
+LIM = 0.000002
 
 # Home made plotting routine! inputs : function f (1D array of MW signal), bandlimit L, plot axis ax, and title
 def myplot(f, L, ax, plt, title=''):
@@ -50,17 +51,17 @@ def myplot(f, L, ax, plt, title=''):
     #cbar = plt.colorbar(cax,ticks=[min(f),max(f)],orientation='horizontal')
 
 # Plot scaling function map
-fig, ax = plt.subplots(1,1)
+'''fig, ax = plt.subplots(1,1)
 myplot(scal_maps, scal_lmax, ax, plt, title='Scaling function map') #NEEDS CORRECTING'''
 '''fig, ax = plt.subplots(1,1)
 myplot(f_mw_rec, L, ax, 'Input map converted to MW (reconstructed)')
 fig.savefig('test_directional_python_wrappers_1.png')'''
 
 
-# Plot R map
-'''fig, ax = plt.subplots(1,1)
-offset, bandlimit, nelem, nelem_wav = wav_ind(6, 1, wavparam, ellmax, ndir, jmin, upsample)
-myplot(R_maps[0,0], bandlimit*2, ax, plt, title='R map') #NEEDS CORRECTING'''
+# Plot R/wav_sing map
+fig, ax = plt.subplots(1,1)
+offset, bandlimit, nelem, nelem_wav = wav_ind(12, 1, wavparam, ellmax, ndir, jmin, upsample)
+myplot(wav_sing_map, bandlimit, ax, plt, title='j12, n1 map') #NEEDS CORRECTING
 
 '''fig, axs = plt.subplots(len(R_maps), len(R_maps[0]), figsize=(4*5, 3*5))
 axs = axs.ravel()
