@@ -21,7 +21,7 @@ class ForkedData(object):
 
     Intended use:
         - The master process makes the data somehow, and does e.g.
-            data = ForkedData(the_value)
+          data = ForkedData(the_value)
         - The master makes sure to keep a reference to the ForkedData object
           until the children are all done with it, since the global reference
           is deleted to avoid memory leaks when the ForkedData object dies.
@@ -135,7 +135,7 @@ def doubleworker(i): #i = (maps[i],scale_lmax,smoothing_lmax,spin)
     return mapsdouble
 
 def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
-    print "\nRunning Directional S2LET ILC on wavelet scale", mapsextra[4], "/", jmax, "direction", mapsextra[3]+1, "/", ndir, "\n"
+    print "\nRunning Directional S2LET ILC on wavelet scale", mapsextra[2], "/", jmax, "direction", mapsextra[3]+1, "/", ndir, "\n"
     nrows = len(mapsextra[0].value) #No. rows in covar. matrix
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
@@ -146,20 +146,20 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #Parallel version
     print "Started packing input data for doubling"
-    mapsextra2 = [(mapsextra[0].value[i],mapsextra[1],smoothing_lmax,mapsextra[2]) for i in xrange(nrows)]
-    print "Finished packing input data for doubling"
-    nprocess2 = 9
+    mapsextra2 = [(mapsextra[0].value[i],mapsextra[1],smoothing_lmax,mapsextra[4]) for i in xrange(nrows)]
+    print "Finished packing input data for doubling\n"
+    #nprocess2 = 9
     print "Here"
     pool2 = mg.Pool(nprocess2)
-    print "Farming out workers to run doubling function"
+    print "\nFarming out workers to run doubling function"
     mapsdouble = np.array(pool2.map(doubleworker,mapsextra2))
-    print "Have returned from doubling workers"
+    print "Have returned from doubling workers\n"
     pool2.close()
     pool2.join()
     del mapsextra2
     
     #Calculating covariance matrix (at each pixel)
-    print "Calculating covariance matrices"
+    print "Calculating covariance matrices\n"
     R = np.zeros((len(mapsdouble),len(mapsdouble),len(mapsdouble[0])),dtype=np.complex128) #Pre-allocate array
     for i in xrange(len(mapsdouble)):
         R[i,:,:] = np.multiply(mapsdouble,np.roll(mapsdouble,-i,axis=0))
@@ -181,10 +181,10 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     del Rflat'''
     #Parallel version
     print "Started packing input data for smoothing"
-    Rextra = [(R[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
-    print "Finished packing input data for doubling"
+    Rextra = [(R[i],smoothing_lmax,mapsextra[4],gausssmooth,mapsextra[1],mapsextra[3],i) for i in xrange(nindepelems)]
+    print "Finished packing input data for smoothing\n"
     del R
-    nprocess3 = 23
+    #nprocess3 = 23
     pool3 = mg.Pool(nprocess3)
     Rsmooth = np.array(pool3.map(smoothworker,Rextra))
     pool3.close()
@@ -200,7 +200,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     Rsmooth = Rsmooth + np.transpose(Rsmooth,axes=(1,0,2)) #Gaps filled in
 
     #Compute inverse covariance matrices
-    print "Calculating inverse covariance matrices"
+    print "\nCalculating inverse covariance matrices\n"
     Rinv = np.linalg.inv(np.transpose(Rsmooth,axes=(2,0,1))) #Parallel vers. slower!?
     del Rsmooth
 
@@ -217,18 +217,18 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
     
     #Downgrade resolution of MW maps
     print "Downgrading resolution of CMB wavelet map"
-    finalmapalms = ps.map2alm_mw(finalmap,smoothing_lmax,mapsextra[2])
+    finalmapalms = ps.map2alm_mw(finalmap,smoothing_lmax,mapsextra[4])
     del finalmap
     alms_fname = 'alms_' + str(mapsextra[5]) + '.fits'
     hp.write_alm(alms_fname,finalmapalms,lmax=mapsextra[1]-1,mmax=mapsextra[1]-1)
     del finalmapalms
     finalmapalmstruncate = hp.read_alm(alms_fname)
-    finalmaphalf = ps.alm2map_mw(finalmapalmstruncate,mapsextra[1],mapsextra[2])
+    finalmaphalf = ps.alm2map_mw(finalmapalmstruncate,mapsextra[1],mapsextra[4])
     del finalmapalmstruncate
     
     #Saving output map
-    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[4]) + '_n' + str(mapsextra[3]+1) + '.npy'
-    if mapsextra[4] == -1:
+    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[2]) + '_n' + str(mapsextra[3]+1) + '.npy'
+    if mapsextra[2] == -1:
         wav_outfits = scal_outfits
     np.save(wav_outfits,finalmaphalf)
     del finalmaphalf
@@ -246,7 +246,7 @@ if __name__ == "__main__":
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir =  '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
+    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
     fitsroot = 'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
@@ -261,18 +261,21 @@ if __name__ == "__main__":
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
     #Load scaling function maps for each channel
-    '''scal_maps = [None]*nmaps
+    scal_maps = [None]*nmaps
     for i in xrange(len(scal_maps)):
         print "Loading scaling function maps for channel", i+1, "/", len(scal_maps)
         scal_maps[i] = np.load(scal_fits[i])
     scal_maps = np.array(scal_maps)
 
     #Run ILC on scaling function map
+    nprocess2 = 9
+    nprocess3 = 45
+
     scaling_lmax = wavparam**jmin
-    print "Running Directional S2LET ILC on scaling function"
-    scal_output = s2let_ilc_dir_para((scal_maps,scaling_lmax,spin,-1,-1,0)) #n,j=-1 signifies scaling func.
+    print "\nRunning Directional S2LET ILC on scaling function"
+    scal_output = s2let_ilc_dir_para((ForkedData(scal_maps),scaling_lmax,-1,-1,spin,0)) #j,n=-1 signifies scaling func.
     print "Finished running Directional S2LET ILC on scaling function"
-    del scal_maps'''
+    del scal_maps,scal_output
 
     #Load wavelet maps for each channel
     wav_maps = [None]*nmaps
@@ -282,30 +285,38 @@ if __name__ == "__main__":
     wav_maps = np.array(wav_maps) #1.1Gb!!!
 
     #Run ILC on wavelet maps in PARALLEL
-    jmin_real = 6
-    jmax_real = 6
+    nprocess = 2
+    nprocess2 = 9
+    nprocess3 = 23
 
-    mapsextra = [None]*(jmax_real+1-(jmin_real))*2
-    i = 0
+    jmin_real = 6
+    jmax_real = 7
+
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
-        for n in xrange(0,2): #Loop over directions
+        if j == jmax-1:
+            i = 0
+            mapsextra = [None]*ndir*2
+            nprocess = 4
+            nprocess2 = 9
+            nprocess3 = 15
+        elif j == jmax:
+            pass
+        else:
+            i = 0
+            mapsextra = [None]*ndir
+        for n in xrange(0,ndir): #Loop over directions
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             print "Forming input data structure for scale", j, "direction", n+1
-            mapsextra[i] = (ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,spin,n,j,i)
+            mapsextra[i] = (ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,j,n,spin,i)
             i += 1
+        if j == jmax-1:
+            continue
+        print "\nForming non-daemonic pool"
+        pool = MyPool(nprocess)
+        print "Farming out workers to run Directional S2LET ILC on wavelet scales"
+        wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
+        pool.close()
+        pool.join()
+        del mapsextra,wav_output
+
     del wav_maps
-
-    nprocess = 2
-    print "Forming non-pickleable data objects"
-    #mapsextra_forked = ForkedData(mapsextra)
-    print "Finished forming non-pickleable data objects"
-    pool = MyPool(nprocess)
-    print "Farming out workers to run Directional S2LET ILC on wavelet scales"
-    wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
-    pool.close()
-    pool.join()
-    #wav_output = s2let_ilc_dir_para(mapsextra)
-    del mapsextra
-    del mapsextra_forked
-
-
