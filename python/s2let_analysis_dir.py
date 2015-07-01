@@ -3,25 +3,33 @@ import healpy as hp
 import multiprocessing as mg
 import pys2let as ps
 
-def almworker(i):
-    print "This is (map2alm) worker starting for another map"
-    alms_worker = hp.map2alm(i,lmax=ellmax-1)
-    hp.almxfl(alms_worker,pixrecip,inplace=True) #Correcting for pixwin
-    return alms_worker
+def analworker(i):
+    print "This is analysis worker starting for map", i[1]+1, "/", nmaps
+    alms = hp.map2alm(i[0],lmax=ellmax-1)
+    hp.almxfl(alms,pixrecip,inplace=True) #Correcting for pixwin
+    
+    wav_maps,scal_maps = ps.analysis_lm2wav(alms,wavparam,ellmax,jmin,ndir,spin,upsample)
+    del alms
+    np.save(scal_outfits[i[1]],scal_maps)
+    del scal_maps
+    np.save(wav_outfits[i[1]],wav_maps)
+    del wav_maps
+    
+    return 0
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 4
+    nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
-    ndir = 2 #No. directions for each wavelet scale
+    ndir = 3 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
     fitsroot = 'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['K','Ka','Q','V','W']
     fitsend = '_pr2.fits' #'.fits'
@@ -39,21 +47,22 @@ if __name__ == "__main__":
         wav_outfits[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
 
     #Load CMB maps
-    maps = hp.read_map(fits[0])
-    for i in xrange(1,len(fits)):
-        maps = np.vstack((maps,hp.read_map(fits[i])))
+    mapsextra = [None]*nmaps
+    for i in xrange(len(mapsextra)):
+        mapsextra[i] = (hp.read_map(fits[i]),i)
 
-    #Calculate band-limited alms
-    print "\nBand-limiting input maps"
-    pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(maps))[0:ellmax]) #pixwin
-    '''alms = np.array(hp.map2alm(maps,lmax=ellmax-1,pol=False)) #PARALLELISE & correct for pixellisation? #USE_WEIGHTS
-        for i in xrange(len(alms)):
-        hp.almxfl(alms[i],pixrecip,inplace=True)'''
+    #Calculate band-limited alms and analyse
+    print "\nBand-limiting input maps and analysing"
+    pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0][0]))[:ellmax]) #pixwin
     pool = mg.Pool(nprocess)
-    alms = np.array(pool.map(almworker,maps))
+    anal_output = pool.map(analworker,mapsextra)
+    pool.close()
+    pool.join()
+    del anal_output
 
     #Calculate wavelet and scaling function maps for each channel
-    scal_maps = [None]*len(alms)
+    #Serial version
+    '''scal_maps = [None]*len(alms)
     wav_maps = [None]*len(alms)
     for i in xrange(len(alms)): #PARALELLISE
         print "Calculating scaling function and wavelet maps for input map", i
@@ -61,5 +70,5 @@ if __name__ == "__main__":
         np.save(scal_outfits[i],scal_maps[i])
         np.save(wav_outfits[i],wav_maps[i])
     scal_maps = np.array(scal_maps)
-    wav_maps = np.array(wav_maps)
+    wav_maps = np.array(wav_maps)'''
 
