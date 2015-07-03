@@ -287,10 +287,10 @@ if __name__ == "__main__":
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 2
     nprocess2 = 9
-    nprocess3 = 23
+    nprocess3 = 45
 
-    jmin_real = 6
-    jmax_real = 7
+    jmin_real = 10
+    jmax_real = 10
 
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
         if j == jmax-1:
@@ -304,10 +304,10 @@ if __name__ == "__main__":
         else:
             i = 0
             mapsextra = [None]*ndir
-        for n in xrange(0,ndir): #Loop over directions
+        for n in xrange(0,1): #ndir): #Loop over directions
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             print "Forming input data structure for scale", j, "direction", n+1
-            mapsextra[i] = (ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,j,n,spin,i)
+            mapsextra = [(ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,j,n,spin,i)]
             i += 1
         if j == jmax-1:
             continue

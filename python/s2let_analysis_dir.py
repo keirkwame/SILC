@@ -19,11 +19,11 @@ def analworker(i):
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 9
+    nprocess = 1
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
-    ndir = 3 #No. directions for each wavelet scale
+    ndir = 9 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
     jmin = 6
@@ -52,23 +52,17 @@ if __name__ == "__main__":
         mapsextra[i] = (hp.read_map(fits[i]),i)
 
     #Calculate band-limited alms and analyse
-    print "\nBand-limiting input maps and analysing"
+    '''print "\nBand-limiting input maps and analysing"
     pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0][0]))[:ellmax]) #pixwin
     pool = mg.Pool(nprocess)
     anal_output = pool.map(analworker,mapsextra)
     pool.close()
     pool.join()
-    del anal_output
+    del anal_output'''
 
     #Calculate wavelet and scaling function maps for each channel
-    #Serial version
-    '''scal_maps = [None]*len(alms)
-    wav_maps = [None]*len(alms)
-    for i in xrange(len(alms)): #PARALELLISE
-        print "Calculating scaling function and wavelet maps for input map", i
-        wav_maps[i],scal_maps[i] = ps.analysis_lm2wav(alms[i],wavparam,ellmax,jmin,ndir,spin,upsample)
-        np.save(scal_outfits[i],scal_maps[i])
-        np.save(wav_outfits[i],wav_maps[i])
-    scal_maps = np.array(scal_maps)
-    wav_maps = np.array(wav_maps)'''
-
+    #Serial version for single map
+    print "Calculating scaling function and wavelet maps for input map"
+    pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0][0]))[:ellmax]) #pixwin
+    anal_output = analworker(mapsextra[-1])
+    del anal_output
