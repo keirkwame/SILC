@@ -5,68 +5,78 @@ import math as mh
 import multiprocessing as mg
 import pys2let as ps
 
-##Input
-nprocess = 1
-outnside = 1024
-ellmax = 2048 #S2LET parameters - actually band-limits to 1 less
-wavparam = 2
-ndir = 2 #No. directions for each wavelet scale
-spin = 0 #0 for temp, 1 for spin signals
-upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-jmin = 6
-jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
+def variance(scal_map,wav_map):
+    #Scaling function calculation
+    scal_map_var = np.square(scal_map.real) + (1j)*scal_map.imag
 
-fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
-fitsroot = 's2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
-fitsend = '.fits'
-scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
-wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
+    #Wavelet calculation
+    pool = mg.Pool(nprocess)
+    wav_map_var_list = pool.map(varworker,wav_map_list)
+    pool.close()
+    pool.join()
 
-print "Loading input wavelet maps"
-for j in xrange(jmin,jmax+1): #Loading sliced wavelet maps
-    for n in xrange(0,ndir):
-        wav_fits = wav_fits_root + '_j' + str(j) + '_n' + str(n+1) + '.npy'
-        
-        #Override some input maps
-        '''if j < 7:
-            wav_fits = fitsdir + 's2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_' + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_j' + str(j) + '_n' + str(n+1) + '_testoptimise.npy'
-        '''
-        
-        if j == jmin and n == 0:
-            wav_map = np.load(wav_fits)
-            #Square for VARIANCE
-            wav_map = np.square(wav_map.real) + (1j)*wav_map.imag
-            continue
-        wav_map_part = np.load(wav_fits)
-        #Square for VARIANCE
-        wav_map_part = np.square(wav_map_part.real) + (1j)*wav_map_part.imag
-        wav_map = np.concatenate((wav_map,wav_map_part))
-        del wav_map_part
+    return scal_map_var, wav_map_var
 
-outfits = fitsdir + fitsroot + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_recon_variance.fits' #Output is HPX map
-outclfits = fitsdir + fitsroot + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_recon_cls.fits'
+if __name__ == "__main__":
+    ##Input
+    nprocess = 4
+    outnside = 256
+    ellmax = 512 #S2LET parameters - actually band-limits to 1 less
+    wavparam = 2
+    ndir = 1 #No. directions for each wavelet scale
+    spin = 0 #0 for temp, 1 for spin signals
+    upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
+    jmin = 6
+    jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-#Override some input maps
-#scal_fits = 'deconv_data/s2let_ilc_dir_para_gauss_wmap_deconv_smoothw_extrapolated_9yr_scal_1024_2_6_3.npy'
+    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
+    fitsroot = 's2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsend = '.fits'
+    scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+    wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
-#Load wavelet and scaling function maps
-scal_map = np.load(scal_fits)
-#Square for VARIANCE
-scal_map = np.square(scal_map.real) + (1j)*scal_map.imag
+    print "Loading input wavelet maps"
+    for j in xrange(jmin,jmax+1): #Loading sliced wavelet maps
+        for n in xrange(0,ndir):
+            wav_fits = wav_fits_root + '_j' + str(j) + '_n' + str(n+1) + '.npy'
+            
+            #Override some input maps
+            '''if j < 7:
+                wav_fits = fitsdir + 's2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_' + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_j' + str(j) + '_n' + str(n+1) + '_testoptimise.npy'
+            '''
+            
+            if j == jmin and n == 0:
+                wav_map = np.load(wav_fits)
+                continue
+            wav_map_part = np.load(wav_fits)
+            wav_map = np.concatenate((wav_map,wav_map_part))
+            del wav_map_part
 
-#Synthesise final map
-print "Synthesising final alm's"
-final_alms = ps.synthesis_wav2lm(wav_map,scal_map,wavparam,ellmax,jmin,ndir,spin,upsample)
-print "Calculating final map"
-final_map = hp.alm2map(final_alms,nside=outnside,pixwin=True)
-hp.write_map(outfits,final_map)
-'''print "Calculating final cl's"
-final_cls = hp.alm2cl(final_alms)
-hp.write_cl(outclfits,final_cls)
-ell = np.arange(len(final_cls))
-invtwopi = 1./(2.*mh.pi)
+    outfits = fitsdir + fitsroot + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_recon_variance.fits' #Output is HPX map
+    outclfits = fitsdir + fitsroot + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_recon_cls.fits'
 
-#Binning final power spectrum for plotting
-binlen = 8 #Should be factor of len(final_cls)
-final_cls_binned = np.mean(np.reshape(final_cls,(-1,binlen)),axis=-1)
-ell_binned = np.mean(np.reshape(ell,(-1,binlen)),axis=-1)'''
+    #Override some input maps
+    #scal_fits = 'deconv_data/s2let_ilc_dir_para_gauss_wmap_deconv_smoothw_extrapolated_9yr_scal_1024_2_6_3.npy'
+
+    #Load wavelet and scaling function maps
+    scal_map = np.load(scal_fits)
+
+    #VARIANCE calculation
+    scal_map_var,wav_map_var = variance(scal_map,wav_map)
+
+    #Synthesise final map
+    print "Synthesising final alm's"
+    final_alms = ps.synthesis_wav2lm(wav_map,scal_map,wavparam,ellmax,jmin,ndir,spin,upsample)
+    print "Calculating final map"
+    final_map = hp.alm2map(final_alms,nside=outnside,pixwin=True)
+    hp.write_map(outfits,final_map)
+    '''print "Calculating final cl's"
+    final_cls = hp.alm2cl(final_alms)
+    hp.write_cl(outclfits,final_cls)
+    ell = np.arange(len(final_cls))
+    invtwopi = 1./(2.*mh.pi)
+
+    #Binning final power spectrum for plotting
+    binlen = 8 #Should be factor of len(final_cls)
+    final_cls_binned = np.mean(np.reshape(final_cls,(-1,binlen)),axis=-1)
+    ell_binned = np.mean(np.reshape(ell,(-1,binlen)),axis=-1)'''
