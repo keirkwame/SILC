@@ -235,6 +235,15 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
     return 0
 
+def test_ilc(mapsextra):
+    #Saving output map
+    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[2]) + '_n' + str(mapsextra[3]+1) + '.npy'
+    if mapsextra[2] == -1:
+        wav_outfits = scal_outfits
+    np.save(wav_outfits,mapsextra[0].value[2])
+
+    return 0
+
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
@@ -256,7 +265,7 @@ if __name__ == "__main__":
         wav_fits[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
 
     outdir = fitsdir
-    outroot = 's2let_ilc_dir_hypatia_' + fitsroot
+    outroot = 's2let_ilc_dir_hypatia_TEST70_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
@@ -273,7 +282,7 @@ if __name__ == "__main__":
 
     scaling_lmax = wavparam**jmin
     print "\nRunning Directional S2LET ILC on scaling function"
-    scal_output = s2let_ilc_dir_para((ForkedData(scal_maps),scaling_lmax,-1,-1,spin,0)) #j,n=-1 signifies scaling func.
+    scal_output = test_ilc((ForkedData(scal_maps),scaling_lmax,-1,-1,spin,0)) #j,n=-1 signifies scaling func.
     print "Finished running Directional S2LET ILC on scaling function"
     del scal_maps,scal_output
 
@@ -287,10 +296,10 @@ if __name__ == "__main__":
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 2
     nprocess2 = 9
-    nprocess3 = 45
+    nprocess3 = 23
 
-    jmin_real = 10
-    jmax_real = 10
+    jmin_real = 6
+    jmax_real = 12
 
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
         if j == jmax-1:
@@ -298,23 +307,23 @@ if __name__ == "__main__":
             mapsextra = [None]*ndir*2
             nprocess = 4
             nprocess2 = 9
-            nprocess3 = 15
+            nprocess3 = 23
         elif j == jmax:
             pass
         else:
             i = 0
             mapsextra = [None]*ndir
-        for n in xrange(0,1): #ndir): #Loop over directions
+        for n in xrange(0,ndir): #Loop over directions
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             print "Forming input data structure for scale", j, "direction", n+1
-            mapsextra = [(ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,j,n,spin,i)]
+            mapsextra[i] = (ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,j,n,spin,i)
             i += 1
         if j == jmax-1:
             continue
         print "\nForming non-daemonic pool"
         pool = MyPool(nprocess)
         print "Farming out workers to run Directional S2LET ILC on wavelet scales"
-        wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
+        wav_output = pool.map(test_ilc,mapsextra)
         pool.close()
         pool.join()
         del mapsextra,wav_output

@@ -19,11 +19,11 @@ def analworker(i):
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 1
+    nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
-    ndir = 9 #No. directions for each wavelet scale
+    ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
     jmin = 6
@@ -62,7 +62,7 @@ if __name__ == "__main__":
 
     #Calculate wavelet and scaling function maps for each channel
     #Serial version for single map
-    print "Calculating scaling function and wavelet maps for input map"
+    '''print "Calculating scaling function and wavelet maps for input map"
     pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0][0]))[:ellmax]) #pixwin
     anal_output = analworker(mapsextra[-1])
-    del anal_output
+    del anal_output'''
