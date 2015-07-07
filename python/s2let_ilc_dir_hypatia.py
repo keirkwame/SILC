@@ -66,7 +66,7 @@ class NoDaemonProcess(mg.Process):
 class MyPool(mg.pool.Pool):
     Process = NoDaemonProcess
 
-def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i,j)
+def smoothworker(i): #(Rflat[i],smoothing_lmax,spin,gausssmooth,scale_lmax,n,i)
     print "Smoothing another independent covariance element"
     alms = ps.map2alm_mw(i[0],i[1],i[2]) #No pixwin correct. with MW - calc alms to smooth
     hp.almxfl(alms,i[3],inplace=True) #Multiply by gaussian beam
@@ -134,8 +134,9 @@ def doubleworker(i): #i = (maps[i],scale_lmax,smoothing_lmax,spin)
     del alms
     return mapsdouble
 
-def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
+def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,j,n,spin,i)
     print "\nRunning Directional S2LET ILC on wavelet scale", mapsextra[2], "/", jmax, "direction", mapsextra[3]+1, "/", ndir, "\n"
+    npix = hp.nside2npix(1<<(int(0.5*mapsextra[1])-1).bit_length())
     nrows = len(mapsextra[0].value) #No. rows in covar. matrix
     smoothing_lmax = 2.*mapsextra[1] #=4.*nside(j)
     
@@ -166,7 +167,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (maps,scale_lmax,spin,n,j,i)
 
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
-    npix = 12*((0.5*mapsextra[1])**2) #Equivalent number of HEALPix pixels
+    #npix = 12*((0.5*mapsextra[1])**2) #Equivalent number of HEALPix pixels
     scale_fwhm = 4. * mh.sqrt(nsamp / npix)
     
     #Smooth covariance matrices
