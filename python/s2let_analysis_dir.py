@@ -21,24 +21,24 @@ if __name__ == "__main__":
     ##Input
     nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 3400 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 2048 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
-    ndir = 1 #No. directions for each wavelet scale
+    ndir = 2 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
     fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    fitsroot = 'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsroot = 'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['K','Ka','Q','V','W']
-    fitsend = '_pr2.fits' #'.fits'
+    fitsend = '.fits' #'_pr2.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
 
     outdir = fitsdir
-    outroot = 'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    outroot = 'ffp6_combined_mc_0000_deconv_' #'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     outcode = fitscode #['k','ka','q','v','w']
     scal_outfits = [None]*nmaps
     wav_outfits = [None]*nmaps
@@ -52,13 +52,13 @@ if __name__ == "__main__":
         mapsextra[i] = (hp.read_map(fits[i]),i)
 
     #Calculate band-limited alms and analyse
-    '''print "\nBand-limiting input maps and analysing"
+    print "\nBand-limiting input maps and analysing"
     pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0][0]))[:ellmax]) #pixwin
     pool = mg.Pool(nprocess)
     anal_output = pool.map(analworker,mapsextra)
     pool.close()
     pool.join()
-    del anal_output'''
+    del anal_output
 
     #Calculate wavelet and scaling function maps for each channel
     #Serial version for single map
