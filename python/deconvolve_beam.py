@@ -15,7 +15,7 @@ def almworker(i):
 
 def smoothfunc(x,borig): #x is range of ell's
     xmiddle = .5*(x[0]+x[-1])
-    alpha = 5./(x[-1] - xmiddle)
+    alpha = 3./(x[-1] - xmiddle) #numer=5 for WMAP #numer=4 for Planck
     y = (borig * (np.exp(alpha*(x[0] - xmiddle)) + 1.))/(np.exp(alpha*(x - xmiddle)) + 1.)
     return y
 
@@ -108,6 +108,10 @@ if __name__ == "__main__":
     rawbeam[0] = np.concatenate((rawbeam[0],gauss30extrap))
     rawbeam[1] = np.concatenate((rawbeam[1],gauss44extrap))
     rawbeam[2] = np.concatenate((rawbeam[2],gauss70extrap))
+    #Try replacing LFI beams with Gaussian approximations
+    '''rawbeam[0] = hp.gauss_beam(mh.radians(fwhms[0]),lmax=ellmax-1)
+    rawbeam[1] = hp.gauss_beam(mh.radians(fwhms[1]),lmax=ellmax-1)
+    rawbeam[2] = hp.gauss_beam(mh.radians(fwhms[2]),lmax=ellmax-1)'''
     rawbeam = np.array(rawbeam)
 
     #Smoothing W-beam for 're-convolving'
@@ -120,11 +124,12 @@ if __name__ == "__main__":
     smoothbegin = 3400
     smoothend = ellmax-1
     smoothbeam[smoothbegin:smoothend+1] = smoothfunc(np.arange(smoothbegin,smoothend+1),smoothbeam[smoothbegin])
+    smoothbeam_orig = hp.gauss_beam(mh.radians(5./60.),lmax=ellmax-1)
 
     #Take reciprocal of beam transfer functions
     #pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(maps))[:ellmax+1]) #TESTING pixwin
-    pixrecip1024 = np.reciprocal(hp.pixwin(hp.get_nside(maps[0]))[:ellmax]) #30 & 44 GHz at Nside=1024
-    pixrecip2048 = np.reciprocal(hp.pixwin(hp.get_nside(maps[3]))[:ellmax]) #70 & HFI @ Nside=2048 #Not 70 for MC
+    pixrecip1024 = np.reciprocal(hp.pixwin(1024)[:ellmax]) #30 & 44 GHz at Nside=1024
+    pixrecip2048 = np.reciprocal(hp.pixwin(2048)[:ellmax]) #70 & HFI @ Nside=2048 #Not 70 for MC
     recipcombbeam = np.reciprocal(rawbeam) #combbeam)
     deconbeam = [None]*len(recipcombbeam)
     for i in xrange(2): #len(recipcombbeam)):
