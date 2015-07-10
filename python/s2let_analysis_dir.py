@@ -12,7 +12,15 @@ def analworker(i):
     del alms
     np.save(scal_outfits[i[1]],scal_maps)
     del scal_maps
-    np.save(wav_outfits[i[1]],wav_maps)
+    
+    #Splitting up output wavelet maps
+    for j in xrange(jmin,jmax+1):
+        for n in xrange(0,ndir):
+            offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
+            wav_outfits = wav_outfits_root[i[1]] + '_j' + str(j) + '_n' + str(n+1) + '.npy'
+            np.save(wav_outfits,wav_maps[offset:offset+nelem])
+    
+    #np.save(wav_outfits[i[1]],wav_maps)
     del wav_maps
     
     return 0
@@ -41,10 +49,10 @@ if __name__ == "__main__":
     outroot = fitsroot #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     outcode = fitscode #['k','ka','q','v','w']
     scal_outfits = [None]*nmaps
-    wav_outfits = [None]*nmaps
+    wav_outfits_root = [None]*nmaps
     for i in xrange(len(scal_outfits)):
         scal_outfits[i] = outdir + outroot + outcode[i] + '_scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
-        wav_outfits[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+        wav_outfits_root[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
     #Load CMB maps
     mapsextra = [None]*(nmaps-1)
