@@ -19,9 +19,9 @@ def analworker(i):
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 9
+    nprocess = 8
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 4000 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
@@ -47,9 +47,9 @@ if __name__ == "__main__":
         wav_outfits[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
 
     #Load CMB maps
-    mapsextra = [None]*nmaps
-    for i in xrange(len(mapsextra)):
-        mapsextra[i] = (hp.read_map(fits[i]),i)
+    mapsextra = [None]*(nmaps-1)
+    for i in xrange(0,len(mapsextra)):
+        mapsextra[i] = (hp.read_map(fits[i+1]),i+1)
 
     #Calculate band-limited alms and analyse
     print "\nBand-limiting input maps and analysing"
@@ -63,6 +63,6 @@ if __name__ == "__main__":
     #Calculate wavelet and scaling function maps for each channel
     #Serial version for single map
     '''print "Calculating scaling function and wavelet maps for input map"
-    pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0][0]))[:ellmax]) #pixwin
-    anal_output = analworker(mapsextra[-1])
+    pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0]))[:ellmax]) #pixwin
+    anal_output = analworker(mapsextra)
     del anal_output'''

@@ -248,7 +248,7 @@ def test_ilc(mapsextra):
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 4000 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
     #Load scaling function maps for each channel
-    scal_maps = [None]*nmaps
+    '''scal_maps = [None]*nmaps
     for i in xrange(len(scal_maps)):
         print "Loading scaling function maps for channel", i+1, "/", len(scal_maps)
         scal_maps[i] = np.load(scal_fits[i])
@@ -285,7 +285,7 @@ if __name__ == "__main__":
     print "\nRunning Directional S2LET ILC on scaling function"
     scal_output = s2let_ilc_dir_para((ForkedData(scal_maps),scaling_lmax,-1,-1,spin,0)) #j,n=-1 signifies scaling func.
     print "Finished running Directional S2LET ILC on scaling function"
-    del scal_maps,scal_output
+    del scal_maps,scal_output'''
 
     #Load wavelet maps for each channel
     wav_maps = [None]*nmaps
@@ -297,10 +297,10 @@ if __name__ == "__main__":
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 1
     nprocess2 = 9
-    nprocess3 = 45
+    nprocess3 = 23
 
-    jmin_real = 11
-    jmax_real = 11
+    jmin_real = jmin
+    jmax_real = 9
     ndir_min = 0
     ndir_max = ndir - 1
 
