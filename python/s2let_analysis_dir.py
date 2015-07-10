@@ -19,17 +19,16 @@ def analworker(i):
             offset,scale_lmax,nelem,nelem_wav = ps.wav_ind(j,n,wavparam,ellmax,ndir,jmin,upsample)
             wav_outfits = wav_outfits_root[i[1]] + '_j' + str(j) + '_n' + str(n+1) + '.npy'
             np.save(wav_outfits,wav_maps[offset:offset+nelem])
-    
-    #np.save(wav_outfits[i[1]],wav_maps)
+
     del wav_maps
     
     return 0
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 8
+    nprocess = 4
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 256 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
@@ -37,7 +36,7 @@ if __name__ == "__main__":
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
     fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['K','Ka','Q','V','W']
     fitsend = '_pr2.fits' #'.fits'
@@ -55,9 +54,9 @@ if __name__ == "__main__":
         wav_outfits_root[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
     #Load CMB maps
-    mapsextra = [None]*(nmaps-1)
+    mapsextra = [None]*nmaps
     for i in xrange(0,len(mapsextra)):
-        mapsextra[i] = (hp.read_map(fits[i+1]),i+1)
+        mapsextra[i] = (hp.read_map(fits[i]),i)
 
     #Calculate band-limited alms and analyse
     print "\nBand-limiting input maps and analysing"
