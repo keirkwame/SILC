@@ -72,6 +72,9 @@ def smoothworker(i): #(j,n,map_index1,map_index2,smoothing_lmax,scale_fwhm) [map
     #Map loading within sub-process
     wav_fits1 = wav_fits_root[i[2]] + '_j' + str(i[0]) + '_n' + str(i[1]+1) + '_double.npy'
     wav_fits2 = wav_fits_root[i[3]] + '_j' + str(i[0]) + '_n' + str(i[1]+1) + '_double.npy'
+    if i[0] == -1: #Scaling function
+        wav_fits1 = scal_fits[i[2]][:-4] + '_double.npy'
+        wav_fits2 = scal_fits[i[3]][:-4] + '_double.npy'
     map1 = np.real(np.load(wav_fits1,mmap_mode='r')) #Throw away zero imaginary part
     map2 = np.real(np.load(wav_fits2,mmap_mode='r'))
     R = np.multiply(map1,map2) + 0.j #Add back in zero imaginary part
@@ -124,7 +127,9 @@ def smoothworker(i): #(j,n,map_index1,map_index2,smoothing_lmax,scale_fwhm) [map
     del alms
     
     #SAVE smoothed covariance
-    R_fits = wav_outfits_root + '_Rsmooth' + str(i[2]) + str(i[3]) +'.npy'
+    R_fits = wav_outfits_root + '_j' + str(i[0]) + '_n' + str(i[1]+1) + '_Rsmooth' + str(i[2]) + str(i[3]) +'.npy'
+    if i[0] == -1: #Scaling function
+        R_fits = scal_outfits[:-4] + '_Rsmooth' + str(i[2]) + str(i[3]) +'.npy'
     np.save(R_fits,Rsmooth)
     del Rsmooth
     
@@ -156,6 +161,8 @@ def doubleworker(i): #i = (j,n,map_index,scale_lmax,smoothing_lmax)
     
     #TESTING map loading within sub-process
     wav_fits = wav_fits_root[i[2]] + '_j' + str(i[0]) + '_n' + str(i[1]+1) + '.npy'
+    if i[0] == -1: #Scaling function
+        wav_fits = scal_fits[i[2]]
     map = np.load(wav_fits,mmap_mode='r') #Map still only stored on disk
 
     alms = ps.map2alm_mw(map,i[3],spin) #alm's to l(j)
@@ -166,6 +173,8 @@ def doubleworker(i): #i = (j,n,map_index,scale_lmax,smoothing_lmax)
     
     #SAVE doubled map
     double_fits = wav_fits_root[i[2]] + '_j' + str(i[0]) + '_n' + str(i[1]+1) + '_double.npy'
+    if i[0] == -1: #Scaling function
+        double_fits = scal_fits[i[2]][:-4] + '_double.npy'
     np.save(double_fits,map)
     del map
     
@@ -177,6 +186,8 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     scale_lmax = wavparam**(mapsextra[0]+1) #lambda^(j+1)
     if scale_lmax > ellmax:
         scale_lmax = ellmax
+    if mapsextra[0] == -1: #Scaling function
+        scale_lmax = wavparam**jmin
     smoothing_lmax = 2.*(scale_lmax-1.)+1
 
     #Doubling lmax for input maps with zero-padding
@@ -188,7 +199,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
     
     print "Forming pool"
-    pool2 = mg.Pool(nprocess2)
+    '''pool2 = mg.Pool(nprocess2)
     print "\nFarming out workers to run doubling function"
     double_output = pool2.map(doubleworker,mapsextra2)
     print "Have returned from doubling workers\n"
@@ -199,7 +210,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
     npix = hp.nside2npix(1<<(int(0.5*scale_lmax)-1).bit_length()) #Equivalent no. HEALPIX pixels
-    scale_fwhm = 4. * mh.sqrt(nsamp / npix)
+    scale_fwhm = 4. * mh.sqrt(nsamp / npix)'''
     
     #Smooth covariance matrices
     #Serial version
@@ -208,7 +219,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
         Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
     del Rflat'''
     #Parallel version
-    nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in symmetric covariance matrix
+    '''nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in symmetric covariance matrix
     Rextra = [None]*nindepelems
     k=0
     for i in xrange(nmaps):
@@ -222,15 +233,19 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "Have returned from smoothing workers\n"
     pool3.close()
     pool3.join()
-    del pool3
+    del pool3'''
 
     #Load R maps and form matrices
     print "Pre-allocating memory for complete covariance tensor\n"
     Rsmooth = np.zeros((ps.mw_size(smoothing_lmax),nmaps,nmaps),dtype=np.float64) #Pre-allocate array
     for i in xrange(nmaps):
         for j in xrange(i+1):
-            R_fits = wav_outfits_root + '_Rsmooth' + str(i) + str(j) +'.npy'
+            R_fits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_Rsmooth' + str(i) + str(j) +'.npy'
+            if mapsextra[0] == -1: #Scaling function
+                R_fits = scal_outfits[:-4] + '_Rsmooth' + str(i) + str(j) +'.npy'
+            print "Here"
             Rsmooth[:,i,j] = np.load(R_fits)
+            print "Here2"
             if i != j:
                 Rsmooth[:,j,i] = Rsmooth[:,i,j]
 
@@ -250,6 +265,8 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     mapsdouble = np.zeros((len(wk),len(wk[0])),dtype=np.float64) #Pre-allocate array
     for i in xrange(nmaps):
         wav_fits = wav_fits_root[i] + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_double.npy'
+        if mapsextra[0] == -1: #Scaling function
+            wav_fits = scal_fits[i][:-4] + '_double.npy'
         mapsdouble[:,i] = np.real(np.load(wav_fits,mmap_mode='r')) #Throw away zero imaginary part
 
     #Dot weights with maps (at each small pixel) - at double l(j)
@@ -260,7 +277,9 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "Downgrading resolution of CMB wavelet map"
     finalmapalms = ps.map2alm_mw(finalmap,smoothing_lmax,spin)
     del finalmap
-    alms_fname = wav_outfits_root + '_alms_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '.fits'
+    alms_fname = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_alms.fits'
+    if mapsextra[0] == -1: #Scaling function
+        alms_fname = scal_outfits[:-4] + '_alms.fits'
     hp.write_alm(alms_fname,finalmapalms,lmax=scale_lmax-1,mmax=scale_lmax-1)
     del finalmapalms
     finalmapalmstruncate = hp.read_alm(alms_fname)
@@ -288,7 +307,7 @@ def test_ilc(mapsextra):
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 256 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
     wavparam = 2
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
@@ -296,7 +315,7 @@ if __name__ == "__main__":
     jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
+    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
     fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
@@ -310,30 +329,18 @@ if __name__ == "__main__":
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
 
-    #Load scaling function maps for each channel
-    '''scal_maps = [None]*nmaps
-    for i in xrange(len(scal_maps)):
-        print "Loading scaling function maps for channel", i+1, "/", len(scal_maps)
-        scal_maps[i] = np.load(scal_fits[i])
-    scal_maps = np.array(scal_maps)
-
     #Run ILC on scaling function map
     nprocess2 = 9
     nprocess3 = 45
-
-    scaling_lmax = wavparam**jmin
-    print "\nRunning Directional S2LET ILC on scaling function"
-    scal_output = s2let_ilc_dir_para((ForkedData(scal_maps),scaling_lmax,-1,-1,spin,0)) #j,n=-1 signifies scaling func.
-    print "Finished running Directional S2LET ILC on scaling function"
-    del scal_maps,scal_output'''
+    #scal_output = s2let_ilc_dir_para((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 1
-    nprocess2 = 3
-    nprocess3 = 4
+    nprocess2 = 9
+    nprocess3 = 45
 
-    jmin_real = jmin
-    jmax_real = jmax
+    jmin_real = 12
+    jmax_real = 12
     ndir_min = 0
     ndir_max = ndir - 1
 
