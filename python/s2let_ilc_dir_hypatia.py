@@ -183,11 +183,11 @@ def doubleworker(i): #i = (j,n,map_index,scale_lmax,smoothing_lmax)
 def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "\nRunning Directional S2LET ILC on wavelet scale", mapsextra[0], "/", jmax, "direction", mapsextra[1]+1, "/", ndir, "\n"
 
-    scale_lmax = wavparam**(mapsextra[0]+1) #lambda^(j+1)
+    scale_lmax = int(mh.ceil(wavparam**(mapsextra[0]+1))) #lambda^(j+1) - rounded up and made integer
     if scale_lmax > ellmax:
         scale_lmax = ellmax
     if mapsextra[0] == -1: #Scaling function
-        scale_lmax = wavparam**jmin
+        scale_lmax = int(mh.ceil(wavparam**jmin)) #lambda^(jmin) - rounded up and made integer
     smoothing_lmax = 2.*(scale_lmax-1.)+1
 
     #Doubling lmax for input maps with zero-padding
@@ -199,7 +199,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
     
     print "Forming pool"
-    '''pool2 = mg.Pool(nprocess2)
+    pool2 = mg.Pool(nprocess2)
     print "\nFarming out workers to run doubling function"
     double_output = pool2.map(doubleworker,mapsextra2)
     print "Have returned from doubling workers\n"
@@ -210,7 +210,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
     npix = hp.nside2npix(1<<(int(0.5*scale_lmax)-1).bit_length()) #Equivalent no. HEALPIX pixels
-    scale_fwhm = 4. * mh.sqrt(nsamp / npix)'''
+    scale_fwhm = 4. * mh.sqrt(nsamp / npix)
     
     #Smooth covariance matrices
     #Serial version
@@ -219,7 +219,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
         Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
     del Rflat'''
     #Parallel version
-    '''nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in symmetric covariance matrix
+    nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in symmetric covariance matrix
     Rextra = [None]*nindepelems
     k=0
     for i in xrange(nmaps):
@@ -233,7 +233,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "Have returned from smoothing workers\n"
     pool3.close()
     pool3.join()
-    del pool3'''
+    del pool3
 
     #Load R maps and form matrices
     print "Pre-allocating memory for complete covariance tensor\n"
@@ -314,7 +314,7 @@ def test_ilc(mapsextra): #mapsextra = (j,n) [Testing on 100 GHz map]
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 256 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
     wavparam = 1.5
     wavparam_str = '1dot5'
     ndir = 1 #No. directions for each wavelet scale
@@ -323,7 +323,7 @@ if __name__ == "__main__":
     jmin = 11
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
+    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
     fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
@@ -340,15 +340,15 @@ if __name__ == "__main__":
     #Run ILC on scaling function map
     nprocess2 = 4
     nprocess3 = 4
-    scal_output = test_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
+    #scal_output = test_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 1
-    nprocess2 = 4
-    nprocess3 = 4
+    nprocess2 = 9
+    nprocess3 = 23
 
-    jmin_real = jmin
-    jmax_real = jmax
+    jmin_real = 20
+    jmax_real = 21
     ndir_min = 0
     ndir_max = ndir - 1
 
@@ -360,7 +360,7 @@ if __name__ == "__main__":
         print "\nForming non-daemonic pool"
         pool = MyPool(nprocess)
         print "Farming out workers to run Directional S2LET ILC on wavelet scales"
-        wav_output = pool.map(test_ilc,mapsextra)
+        wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
         pool.close()
         pool.join()
 
