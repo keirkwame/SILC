@@ -26,17 +26,18 @@ def analworker(i):
 
 if __name__ == "__main__":
     ##Input
-    nprocess = 4
+    nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 256 #S2LET parameters - actually band-limits to 1 less
-    wavparam = 2
+    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
+    wavparam = 1.5
+    wavparam_str = '1dot5'
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-    jmin = 6
+    jmin = 11
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
+    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
     fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['K','Ka','Q','V','W']
     fitsend = '_pr2.fits' #'.fits'
@@ -50,8 +51,8 @@ if __name__ == "__main__":
     scal_outfits = [None]*nmaps
     wav_outfits_root = [None]*nmaps
     for i in xrange(len(scal_outfits)):
-        scal_outfits[i] = outdir + outroot + outcode[i] + '_scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
-        wav_outfits_root[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
+        scal_outfits[i] = outdir + outroot + outcode[i] + '_scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+        wav_outfits_root[i] = outdir + outroot + outcode[i] + '_wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     #Load CMB maps
     mapsextra = [None]*nmaps

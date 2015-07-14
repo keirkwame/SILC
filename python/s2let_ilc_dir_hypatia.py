@@ -295,52 +295,60 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
 
     return 0
 
-def test_ilc(mapsextra):
+def test_ilc(mapsextra): #mapsextra = (j,n) [Testing on 100 GHz map]
+    #Loading input map
+    wav_fits = wav_fits_root[3] + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '.npy'
+    if mapsextra[0] == -1: #Scaling function
+        wav_fits = scal_fits[3]
+    anal_map = np.load(wav_fits,mmap_mode='r') #Map still only stored on disk
+    
     #Saving output map
-    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[2]) + '_n' + str(mapsextra[3]+1) + '.npy'
-    if mapsextra[2] == -1:
+    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '.npy'
+    if mapsextra[0] == -1:
         wav_outfits = scal_outfits
-    np.save(wav_outfits,mapsextra[0].value[2])
+    np.save(wav_outfits,anal_map)
+    del anal_map
 
     return 0
 
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
-    wavparam = 2
+    ellmax = 256 #S2LET parameters - actually band-limits to 1 less
+    wavparam = 1.5
+    wavparam_str = '1dot5'
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-    jmin = 6
+    jmin = 11
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
     fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
     wav_fits_root = [None]*nmaps
     for i in xrange(len(scal_fits)):
-        scal_fits[i] = fitsdir + fitsroot + fitscode[i] + '_scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
-        wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
+        scal_fits[i] = fitsdir + fitsroot + fitscode[i] + '_scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+        wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     outdir = fitsdir
     outroot = 's2let_ilc_dir_hypatia_memeff_' + fitsroot
-    scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '.npy'
-    wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir)
+    scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+    wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     #Run ILC on scaling function map
-    nprocess2 = 9
-    nprocess3 = 45
-    #scal_output = s2let_ilc_dir_para((-1,-1)) #(j,n) = (-1,-1) for scaling function
+    nprocess2 = 4
+    nprocess3 = 4
+    scal_output = test_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 1
-    nprocess2 = 9
-    nprocess3 = 45
+    nprocess2 = 4
+    nprocess3 = 4
 
-    jmin_real = 12
-    jmax_real = 12
+    jmin_real = jmin
+    jmax_real = jmax
     ndir_min = 0
     ndir_max = ndir - 1
 
@@ -352,7 +360,7 @@ if __name__ == "__main__":
         print "\nForming non-daemonic pool"
         pool = MyPool(nprocess)
         print "Farming out workers to run Directional S2LET ILC on wavelet scales"
-        wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
+        wav_output = pool.map(test_ilc,mapsextra)
         pool.close()
         pool.join()
 
