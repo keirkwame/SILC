@@ -3,7 +3,7 @@ from pys2let import *
 import math
 import matplotlib.pyplot as plt
 
-#Changing input for S2LET ILC
+##Changing input for S2LET ILC
 #scal_maps = np.load('../s2let_ilc/deconv_data/s2let_ilc_dir_para_gauss_wmap_deconv_smoothw_extrapolated_9yr_scal_1024_2_6_3.npy') #WMAP
 scal_maps = np.load('/Users/keir/Documents/s2let_ilc_planck/deconv_data/planck_deconv_353_scal_3400_2_6_2.npy') #Planck
 #scal_maps = scal_planck*1000 - scal_maps #Residual

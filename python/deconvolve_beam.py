@@ -27,29 +27,29 @@ if __name__ == "__main__":
     nside_out = 2048
 
     #Frequency channel map FITS files
-    fitsdir = '/home/keir/s2let_ilc_data/maps/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
+    fitsdir = '/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
     fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI'] #['030/','044/','070/','100/','143/','217/','353/','545/','857/']
-    fitsroot = '_SkyMap_' #'ffp6_combined_'
-    fitscode = ['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00'] #['030','044','070','100','143','217','353','545','857']
-    fitsend = '_full.fits' #'_nominal_map_mc_0000.fits'
+    fitsroot = 'ffp6_fiducial_noPS_' #'_SkyMap_' #'ffp6_combined_'
+    fitscode = ['030','044','070','100','143','217','353','545','857'] #['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00']
+    fitsend = '.fits' #'_full.fits' #'_nominal_map_mc_0000.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
-        fits[i] = fitsdir + fitsprefix[i] + fitsroot + fitscode[i] + fitsend
+        fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
 
     #WMAP beam transfer function TXT files
     beamdir = '/home/keir/s2let_ilc_data/beams/' #'/Users/keir/Documents/s2let_ilc_planck/beams/'
     beamroot = 'planck_bl_'
     beamcode = ['30','44','70','100','143','217','353','545','857']
-    beamend = '_pr2.npy'
+    beamend = '_pr1.npy'
     txt = [None]*nda
     for i in xrange(len(txt)):
         txt[i] = beamdir + beamroot + beamcode[i] + beamend
 
     #Output map FITS files
-    outdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    outroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_'
+    outdir = '/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    outroot = 'ffp6_fiducial_noPS_tapered_' #'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_'
     outcode = beamcode
-    outend = '_pr2.fits' #'.fits'
+    outend = '.fits' #'_pr2.fits'
     outfits = [None]*nmaps
     for i in xrange(len(outfits)):
         outfits[i] = outdir + outroot + outcode[i] + outend
@@ -65,9 +65,9 @@ if __name__ == "__main__":
     for i in xrange(len(fits)):
         maps[i] = hp.read_map(fits[i])
 
-    #Unit conversions for 545 & 857 GHz - not necessary for MC simulations
-    maps[-2] = maps[-2] / 58.0356
-    maps[-1] = maps[-1] / 2.2681
+    #Unit conversions for 545 & 857 GHz - not necessary for Fiducial/MC simulations
+    '''maps[-2] = maps[-2] / 58.0356
+    maps[-1] = maps[-1] / 2.2681'''
 
     #Load beam transfer functions
     rawbeam = [None]*nda
@@ -95,7 +95,7 @@ if __name__ == "__main__":
     combbeam = np.array(combbeam)'''
     
     #Extrapolate 30, 44 & 70 GHz (for l_max >= 2048) raw-beams by Gaussian approximation
-    fwhms = [32.33/60.,27.01/60.,13.25/60.] #[32.24/60.,27.00/60.,13.25/60.] #PR2/PR1
+    fwhms = [32.24/60.,27.00/60.,13.25/60.] #[32.33/60.,27.01/60.,13.25/60.] #PR1/PR2
     gauss30 = hp.gauss_beam(mh.radians(fwhms[0]),lmax=ellmax-1)
     gauss30norm = gauss30 / gauss30[1] #Normalise to b_1 = 1
     gauss44 = hp.gauss_beam(mh.radians(fwhms[1]),lmax=ellmax-1)
@@ -132,9 +132,9 @@ if __name__ == "__main__":
     pixrecip2048 = np.reciprocal(hp.pixwin(2048)[:ellmax]) #70 & HFI @ Nside=2048 #Not 70 for MC
     recipcombbeam = np.reciprocal(rawbeam) #combbeam)
     deconbeam = [None]*len(recipcombbeam)
-    for i in xrange(2): #len(recipcombbeam)):
+    for i in xrange(3): #len(recipcombbeam)):
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip1024 #Deconvolving to tapered 5' gaussian beam
-    for i in xrange(2,len(recipcombbeam)):
+    for i in xrange(3,len(recipcombbeam)):
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip2048 #Deconvolving to tapered 5' gaussian beam
     deconbeam = np.array(deconbeam)
 
