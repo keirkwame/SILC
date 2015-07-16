@@ -20,14 +20,14 @@ def smoothfunc(x,borig): #x is range of ell's
     return y
 
 if __name__ == "__main__":
-    nprocess = 9
+    nprocess = 4
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     nda = 9 #No. differencing assemblies (WMAP = 10) (Planck = [effectively] 9)
     ellmax = 4000 #Max. is 750 due to WMAP beams
     nside_out = 2048
 
     #Frequency channel map FITS files
-    fitsdir = '/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
+    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp6_data/' #'/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
     fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI'] #['030/','044/','070/','100/','143/','217/','353/','545/','857/']
     fitsroot = 'ffp6_fiducial_noPS_' #'_SkyMap_' #'ffp6_combined_'
     fitscode = ['030','044','070','100','143','217','353','545','857'] #['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00']
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
 
     #WMAP beam transfer function TXT files
-    beamdir = '/home/keir/s2let_ilc_data/beams/' #'/Users/keir/Documents/s2let_ilc_planck/beams/'
+    beamdir = '/Users/keir/Documents/s2let_ilc_planck/beams/' #'/home/keir/s2let_ilc_data/beams/'
     beamroot = 'planck_bl_'
     beamcode = ['30','44','70','100','143','217','353','545','857']
     beamend = '_pr1.npy'
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         txt[i] = beamdir + beamroot + beamcode[i] + beamend
 
     #Output map FITS files
-    outdir = '/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    outdir = fitsdir #'/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
     outroot = 'ffp6_fiducial_noPS_tapered_' #'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_'
     outcode = beamcode
     outend = '.fits' #'_pr2.fits'
