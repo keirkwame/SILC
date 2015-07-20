@@ -45,7 +45,7 @@ pool.close()
 pool.join()'''
 
 pool2 = mg.Pool(nprocess)
-ffp6_output = pool.map(ffp6,np.arange(9))
+ffp6_output = pool2.map(ffp6,np.arange(9))
 pool2.close()
 pool2.join()
 
