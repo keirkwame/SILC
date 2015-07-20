@@ -1,6 +1,7 @@
 import numpy as np
 import healpy as hp
 import math as mh
+import multiprocessing as mg
 import matplotlib.pyplot as plt
 
 def planck(i):
@@ -33,7 +34,6 @@ ffp6code = planckcode
 ffp6end = '.fits'
 ffp6clsend = '_cls.fits'
 
-#fig,ax = plt.subplots(1,1)
 ell = np.arange(3999)
 invtwopi = 1. / (2.*mh.pi)
 
@@ -49,5 +49,6 @@ ffp6_output = pool.map(ffp6,np.arange(9))
 pool2.close()
 pool2.join()
 
-#ax.legend()
-#plt.show()
+'''fig,ax = plt.subplots(1,1)
+ax.legend()
+plt.show()'''
