@@ -6,20 +6,20 @@ import matplotlib.pyplot as plt
 
 def planck(i):
     planckfits = planckdir + planckroot + planckcode[i] + planckend
-    planckmaps[i] = hp.read_map(planckfits)
+    planckmaps = hp.read_map(planckfits)
     #pixrecip = 1. / hp.pixwin(hp.get_nside(planckmaps[i]))
-    planckcls[i] = hp.anafast(planckmaps[i],lmax=3998) #* pixrecip * pixrecip
+    planckcls = hp.anafast(planckmaps,lmax=3998) #* pixrecip * pixrecip
     planckclsfits = planckdir + planckroot + planckcode[i] + planckclsend
-    hp.write_cl(planckclsfits,planckcls[i])
+    hp.write_cl(planckclsfits,planckcls)
     #ax.plot(planckcls[i]*ell*(ell+1)*(10**12)*invtwopi,label=r"Planck 2015 data: %s GHz" % planckcode[i])
 
 def ffp6(i):
     ffp6fits = ffp6dir + ffp6root + ffp6code[i] + ffp6end
-    ffp6maps[i] = hp.read_map(ffp6fits)
+    ffp6maps = hp.read_map(ffp6fits)
     #pixrecip = 1. / hp.pixwin(hp.get_nside(planckmaps[i]))
-    ffp6cls[i] = hp.anafast(ffp6maps[i],lmax=3998) #* pixrecip * pixrecip
+    ffp6cls = hp.anafast(ffp6maps,lmax=3998) #* pixrecip * pixrecip
     ffp6clsfits = ffp6dir + ffp6root + ffp6code[i] + ffp6clsend
-    hp.write_cl(ffp6clsfits,ffp6cls[i])
+    hp.write_cl(ffp6clsfits,ffp6cls)
     #ax.plot(ffp6cls[i]*ell*(ell+1)*(10**12)*invtwopi,label=r"FFP6 simulations: %s GHz" % ffp6code[i])
 
 planckdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
