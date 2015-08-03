@@ -28,25 +28,25 @@ if __name__ == "__main__":
     ##Input
     nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
-    wavparam = 1.5
-    wavparam_str = '1dot5'
+    ellmax = 2500 #S2LET parameters - actually band-limits to 1 less
+    wavparam = 1.2
+    wavparam_str = '1dot2'
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-    jmin = 11
+    jmin = 25
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsdir = '/home/keir/s2let_ilc_data/pr1/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsroot = 'planck_deconv_tapered_minusgaussps_' #'ffp6_fiducial_withPS_tapered_' #'planck_deconv_tapered_noPS_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['K','Ka','Q','V','W']
-    fitsend = '_pr2.fits' #'.fits'
+    fitsend = '_pr1.fits' #'_pr2.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
 
     outdir = fitsdir
-    outroot = fitsroot #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    outroot = fitsroot #'planck_deconv_tapered_pr1_noPS_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     outcode = fitscode #['k','ka','q','v','w']
     scal_outfits = [None]*nmaps
     wav_outfits_root = [None]*nmaps
@@ -56,8 +56,10 @@ if __name__ == "__main__":
 
     #Load CMB maps
     mapsextra = [None]*nmaps
+    #j = 0
     for i in xrange(0,len(mapsextra)):
         mapsextra[i] = (hp.read_map(fits[i]),i)
+        #j+=1
 
     #Calculate band-limited alms and analyse
     print "\nBand-limiting input maps and analysing"
@@ -71,6 +73,8 @@ if __name__ == "__main__":
     #Calculate wavelet and scaling function maps for each channel
     #Serial version for single map
     '''print "Calculating scaling function and wavelet maps for input map"
+    i = 0
+    mapsextra = (hp.read_map(fits[i]),i)
     pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(mapsextra[0]))[:ellmax]) #pixwin
     anal_output = analworker(mapsextra)
     del anal_output'''

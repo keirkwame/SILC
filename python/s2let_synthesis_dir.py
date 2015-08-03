@@ -52,18 +52,18 @@ def variance(scal_map):
 if __name__ == "__main__":
     ##Input
     nprocess = 1
-    outnside = 128
-    ellmax = 256 #S2LET parameters - actually band-limits to 1 less
-    wavparam = 1.5
-    wavparam_str = '1dot5'
+    outnside = 2048
+    ellmax = 2500 #S2LET parameters - actually band-limits to 1 less
+    wavparam = 2
+    wavparam_str = '2'
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-    jmin = 11
+    jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/' #'/home/keir/s2let_ilc_data/'
-    fitsroot = 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_' #'s2let_ilc_dir_hypatia_ffp6_combined_mc_0000_deconv_' #'s2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsdir = '/home/keir/s2let_ilc_data/ffp6_data_withPS/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsroot = 's2let_ilc_dir_hypatia_ffp6_fiducial_withPS_tapered_' #'s2let_ilc_dir_hypatia_planck_deconv_tapered_minusgaussps_' #'s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_pr1_noPS_' #'s2let_ilc_dir_hypatia_memeff_ffp6_fiducial_noPS_tapered_' #'s2let_ilc_dir_hypatia_ffp6_combined_mc_0000_deconv_' #'s2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
@@ -84,8 +84,8 @@ if __name__ == "__main__":
             wav_map = np.concatenate((wav_map,wav_map_part))
             del wav_map_part
 
-    outfits = fitsdir + fitsroot + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '_recon_TEST100.fits' #Output is HPX map
-    outclfits = fitsdir + fitsroot + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '_recon_cls_TEST100.fits'
+    outfits = fitsdir + fitsroot + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '_recon.fits' #Output is HPX map
+    outclfits = fitsdir + fitsroot + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '_recon_cls.fits'
     varfits = fitsdir + fitsroot + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '_variance.fits' #Variance map
 
     #Override some input maps

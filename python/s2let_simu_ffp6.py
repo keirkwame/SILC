@@ -3,13 +3,13 @@ import healpy as hp
 import math as mh
 
 ##Input
-fitsdir = '/Users/keir/Documents/s2let_ilc_planck/components/'
+fitsdir = '/home/keir/global/project/projectdirs/cmb/data/planck2013/ffp6/fiducial/components/' #'/Users/keir/Documents/s2let_ilc_planck/components/'
 fitsroot = 'ffp6_'
 fitscode = ['030','044','070','100','143','217','353','545','857']
 fitsend = '_nominal_map.fits'
 
-outdir = '/Users/keir/Documents/s2let_ilc_planck/ffp6_data/'
-outroot = 'ffp6_fiducial_noPS_'
+outdir = '/home/keir/s2let_ilc_data/ffp6_data_withPS/' #'/Users/keir/Documents/s2let_ilc_planck/ffp6_data/'
+outroot = 'ffp6_fiducial_withPS_'
 outcode = fitscode
 outend = '.fits'
 
@@ -61,8 +61,8 @@ for i in xrange(len(badvecs2[0])): #Loop over bad pixels
     newval = np.ma.average(hfi_masked[badpixs2[0][i],baddisc]) #Avg. over disc excluding badval
     hfi[badpixs2[0][i],badpixs2[1][i]] = newval #Update original array with new value
 
-lfi_combined = lfi[:3,:] + lfi[3:6,:] + lfi[9:,:] - lfi[6:9,:] #CMB + FG [astrophysical components & PS] + Noise - PS
-hfi_combined = hfi[:6,:] + hfi[6:12,:] + hfi[18:,:] - hfi[12:18,:]
+lfi_combined = lfi[:3,:] + lfi[3:6,:] + lfi[9:,:] #- lfi[6:9,:] #CMB + FG [astrophysical components & PS] + Noise - PS
+hfi_combined = hfi[:6,:] + hfi[6:12,:] + hfi[18:,:] #- hfi[12:18,:]
 
 #Saving maps
 print "\nSaving output maps"
