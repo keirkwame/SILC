@@ -4,13 +4,14 @@ import math as mh
 
 ##Input
 fitsdir = '/Users/keir/Documents/s2let_ilc_planck/components/'
-fitsroot = 'ffp6_'
-fitscode = ['030','044','070','100','143','217','353','545','857']
+fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI']
+fitsroot = 'ffp6_' #'_SkyMap_'
+fitscode = ['030','044','070','100','143','217','353','545','857'] #['030_1024_R1.10_nominal','044_1024_R1.10_nominal','070_1024_R1.10_nominal','100_2048_R1.10_nominal_ZodiCorrected','143_2048_R1.10_nominal_ZodiCorrected','217_2048_R1.10_nominal_ZodiCorrected','353_2048_R1.10_nominal_ZodiCorrected','545_2048_R1.10_nominal_ZodiCorrected','857_2048_R1.10_nominal_ZodiCorrected']
 fitsend = '_nominal_map.fits'
 
 outdir = '/Users/keir/Documents/s2let_ilc_planck/ffp6_data/'
-outroot = 'ffp6_fiducial_noPS_'
-outcode = fitscode
+outroot = 'ffp6_fiducial_withPS_'
+outcode = ['30','44','70','100','143','217','353','545','857']
 outend = '.fits'
 
 lfi = np.zeros((3*4,hp.nside2npix(1024))) #Pre-allocate arrays [list of 12 maps]
@@ -61,17 +62,17 @@ for i in xrange(len(badvecs2[0])): #Loop over bad pixels
     newval = np.ma.average(hfi_masked[badpixs2[0][i],baddisc]) #Avg. over disc excluding badval
     hfi[badpixs2[0][i],badpixs2[1][i]] = newval #Update original array with new value
 
-lfi_combined = lfi[:3,:] + lfi[3:6,:] + lfi[9:,:] - lfi[6:9,:] #CMB + FG [astrophysical components & PS] + Noise - PS
-hfi_combined = hfi[:6,:] + hfi[6:12,:] + hfi[18:,:] - hfi[12:18,:]
+lfi_combined = lfi[:3,:] + lfi[3:6,:] + lfi[9:,:] #- lfi[6:9,:] #CMB + FG [astrophysical components & PS] + Noise - PS
+hfi_combined = hfi[:6,:] + hfi[6:12,:] + hfi[18:,:] #- hfi[12:18,:]
 
 #Saving maps
 print "\nSaving output maps"
 for i in xrange(3):
     outfits = outdir + outroot + outcode[i] + outend
-    hp.write_map(outfits,lfi_combined[i,:])
+    hp.write_map(outfits,lfi[i,:])
 
 for i in xrange(6):
     outfits = outdir + outroot + outcode[i+3] + outend
-    hp.write_map(outfits,hfi_combined[i,:])
+    hp.write_map(outfits,hfi[i,:])
 
 
