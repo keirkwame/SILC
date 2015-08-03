@@ -261,6 +261,13 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     wk = wknumer / wkdenom[:,None]
     del wknumer,wkdenom
 
+    #Saving weights tensor for TESTING
+    wkfits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_weights.npy'
+    if mapsextra[0] == -1:
+        wkfits = scal_outfits[:-4] + '_weights.npy'
+    np.save(wkfits,wk)
+    #del wk
+
     #Map loading within sub-process
     mapsdouble = np.zeros((len(wk),len(wk[0])),dtype=np.float64) #Pre-allocate array
     for i in xrange(nmaps):
@@ -314,17 +321,17 @@ def test_ilc(mapsextra): #mapsextra = (j,n) [Testing on 100 GHz map]
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
-    wavparam = 1.5
-    wavparam_str = '1dot5'
+    ellmax = 2500 #S2LET parameters - actually band-limits to 1 less
+    wavparam = 2
+    wavparam_str = '2'
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-    jmin = 11
+    jmin = 6
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    fitsroot = 'planck_deconv_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsdir = '/home/keir/s2let_ilc_data/ffp6_data_withPS/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsroot = 'ffp6_fiducial_withPS_tapered_' #'planck_deconv_tapered_minusgaussps_' #'planck_deconv_tapered_pr1_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
     wav_fits_root = [None]*nmaps
@@ -333,35 +340,37 @@ if __name__ == "__main__":
         wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     outdir = fitsdir
-    outroot = 's2let_ilc_dir_hypatia_memeff_' + fitsroot
+    outroot = 's2let_ilc_dir_hypatia_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     #Run ILC on scaling function map
-    nprocess2 = 4
-    nprocess3 = 4
-    #scal_output = test_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
+    nprocess2 = 9
+    nprocess3 = 45
+    scal_output = s2let_ilc_dir_para((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 1
     nprocess2 = 9
     nprocess3 = 23
 
-    jmin_real = 20
-    jmax_real = 21
+    jmin_real = jmin
+    jmax_real = 37
     ndir_min = 0
     ndir_max = ndir - 1
 
-    for j in xrange(jmin_real,jmax_real+1): #Loop over scales
+    '''for j in xrange(jmin_real,jmax_real+1): #Loop over scales
         mapsextra = [None]*ndir
         for n in xrange(ndir_min,ndir_max+1): #Loop over directions
             #mapsextra[i] = (ForkedData(wav_maps[:,offset:offset+nelem]),scale_lmax,j,n,spin,i)
             mapsextra = [(j,n)] #TESTING map loading within sub-process
+        #for n in xrange(1):
+        #mapsextra = [(19,0)]
         print "\nForming non-daemonic pool"
         pool = MyPool(nprocess)
         print "Farming out workers to run Directional S2LET ILC on wavelet scales"
         wav_output = pool.map(s2let_ilc_dir_para,mapsextra)
         pool.close()
         pool.join()
-
+    '''
 

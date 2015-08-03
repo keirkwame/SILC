@@ -40,10 +40,10 @@ invtwopi = 1. / (2.*mh.pi)
 
 nprocess = 4
 
-'''pool = mg.Pool(nprocess)
+pool = mg.Pool(nprocess)
 planck_output = pool.map(planck,np.arange(9))
 pool.close()
-pool.join()'''
+pool.join()
 
 '''pool2 = mg.Pool(nprocess)
 ffp6_output = pool2.map(ffp6,np.arange(9))
@@ -74,5 +74,3 @@ for i in xrange(len(planckcls)):
 
 #ax.set_ylim([0,10000])
 plt.show()
-
-

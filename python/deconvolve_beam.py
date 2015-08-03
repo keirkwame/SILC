@@ -20,7 +20,7 @@ def smoothfunc(x,borig): #x is range of ell's
     return y
 
 if __name__ == "__main__":
-    nprocess = 4
+    nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     nda = 9 #No. differencing assemblies (WMAP = 10) (Planck = [effectively] 9)
     ellmax = 4000 #Max. is 750 due to WMAP beams
@@ -34,10 +34,10 @@ if __name__ == "__main__":
     fitsend = '_pr1.fits' #'_full.fits' #'_nominal_map_mc_0000.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
-        fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
+        fits[i] = fitsdir + fitsprefix[i] + fitsroot + fitscode[i] + fitsend
 
     #WMAP beam transfer function TXT files
-    beamdir = '/Users/keir/Documents/s2let_ilc_planck/beams/' #'/home/keir/s2let_ilc_data/beams/'
+    beamdir = '/home/keir/s2let_ilc_data/beams/' #'/Users/keir/Documents/s2let_ilc_planck/beams/'
     beamroot = 'planck_bl_'
     beamcode = ['30','44','70','100','143','217','353','545','857']
     beamend = '_pr1.npy'
@@ -65,9 +65,9 @@ if __name__ == "__main__":
     for i in xrange(len(fits)):
         maps[i] = hp.read_map(fits[i])
 
-    #Unit conversions for 545 & 857 GHz - not necessary for Fiducial/MC simulations or 'minusgaussps' maps
-    '''maps[-2] = maps[-2] / 58.0356
-    maps[-1] = maps[-1] / 2.2681'''
+    #Unit conversions for 545 & 857 GHz - not necessary for Fiducial/MC simulations
+    maps[-2] = maps[-2] / 58.0356
+    maps[-1] = maps[-1] / 2.2681
 
     #Load beam transfer functions
     rawbeam = [None]*nda
