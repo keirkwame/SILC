@@ -54,16 +54,16 @@ if __name__ == "__main__":
     nprocess = 1
     outnside = 2048
     ellmax = 2500 #S2LET parameters - actually band-limits to 1 less
-    wavparam = 2
-    wavparam_str = '2'
+    wavparam = 1.2
+    wavparam_str = '1dot2'
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
     upsample = 0 #0 for multiresolution, 1 for all scales at full resolution
-    jmin = 6
+    jmin = 25
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/ffp6_data_withPS/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    fitsroot = 's2let_ilc_dir_hypatia_ffp6_fiducial_withPS_tapered_' #'s2let_ilc_dir_hypatia_planck_deconv_tapered_minusgaussps_' #'s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_pr1_noPS_' #'s2let_ilc_dir_hypatia_memeff_ffp6_fiducial_noPS_tapered_' #'s2let_ilc_dir_hypatia_ffp6_combined_mc_0000_deconv_' #'s2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsdir = '/home/keir/s2let_ilc_data/ffp6_pla_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsroot = 's2let_ilc_dir_hypatia_ffp6_pla_deconv_' #'s2let_ilc_dir_hypatia_planck_deconv_tapered_thresh_' #'s2let_ilc_dir_hypatia_ffp6_fiducial_withPS_tapered_' #'s2let_ilc_dir_hypatia_planck_deconv_tapered_minusgaussps_' #'s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_pr1_noPS_' #'s2let_ilc_dir_hypatia_memeff_ffp6_fiducial_noPS_tapered_' #'s2let_ilc_dir_hypatia_ffp6_combined_mc_0000_deconv_' #'s2let_ilc_dir_para_gauss_planck_deconv_' #'s2let_ilc_dir_para_gauss_simu_dirty_beam_wmap_9yr_' #'s2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
@@ -73,9 +73,8 @@ if __name__ == "__main__":
             wav_fits = wav_fits_root + '_j' + str(j) + '_n' + str(n+1) + '.npy'
             
             #Override some input maps
-            '''if j < 7:
-                wav_fits = fitsdir + 's2let_ilc_dir_para_gauss_wmap_deconv_nosource_smoothw_extrapolated_9yr_' + 'wav_' + str(ellmax) + '_' + str(wavparam) + '_' + str(jmin) + '_' + str(ndir) + '_j' + str(j) + '_n' + str(n+1) + '_testoptimise.npy'
-            '''
+            #if j > 43:
+            #    wav_fits = wav_fits_root + '_j' + str(j) + '_n' + str(n+1) + '_zeroweights.npy'
             
             if j == jmin and n == 0:
                 wav_map = np.load(wav_fits)

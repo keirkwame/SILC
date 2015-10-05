@@ -37,10 +37,10 @@ if __name__ == "__main__":
     jmin = 25
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/pr1/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    fitsroot = 'planck_deconv_tapered_minusgaussps_' #'ffp6_fiducial_withPS_tapered_' #'planck_deconv_tapered_noPS_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsdir = '/home/keir/s2let_ilc_data/ffp6_pla_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsroot = 'ffp6_pla_deconv_' #'planck_deconv_tapered_thresh_minusgaussps2_' #'ffp6_fiducial_withPS_tapered_' #'planck_deconv_tapered_noPS_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_' #'planck_deconv_lmax3400_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['K','Ka','Q','V','W']
-    fitsend = '_pr1.fits' #'_pr2.fits'
+    fitsend = '.fits' #'_pr2.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend

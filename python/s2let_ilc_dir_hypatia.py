@@ -182,6 +182,17 @@ def doubleworker(i): #i = (j,n,map_index,scale_lmax,smoothing_lmax)
 
 def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "\nRunning Directional S2LET ILC on wavelet scale", mapsextra[0], "/", jmax, "direction", mapsextra[1]+1, "/", ndir, "\n"
+    #For TESTING dropping channels
+    '''if mapsextra[0] <= 33:
+        nmaps = 9
+    elif 34 <= mapsextra[0] <= 35:
+        nmaps = 8
+    elif 36 <= mapsextra[0] <= 40:
+        nmaps = 7
+    elif 41 <= mapsextra[0] <= 42:
+        nmaps = 6
+    elif mapsextra[0] >= 43:
+        nmaps = 5'''
 
     scale_lmax = int(mh.ceil(wavparam**(mapsextra[0]+1))) #lambda^(j+1) - rounded up and made integer
     if scale_lmax > ellmax:
@@ -196,8 +207,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     for i in xrange(nrows):
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #Parallel version
-    '''mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
-    
+    mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
     print "Forming pool"
     pool2 = mg.Pool(nprocess2)
     print "\nFarming out workers to run doubling function"
@@ -205,7 +215,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "Have returned from doubling workers\n"
     pool2.close()
     pool2.join()
-    del pool2'''
+    del pool2
 
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
@@ -219,7 +229,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
         Rsmoothflat[i,:] = smoothworker((Rflat[i],smoothing_lmax,mapsextra[2],gausssmooth,mapsextra[1],mapsextra[3],i,mapsextra[4]))
     del Rflat'''
     #Parallel version
-    '''nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in symmetric covariance matrix
+    nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in symmetric covariance matrix
     Rextra = [None]*nindepelems
     k=0
     for i in xrange(nmaps):
@@ -233,56 +243,56 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "Have returned from smoothing workers\n"
     pool3.close()
     pool3.join()
-    del pool3'''
+    del pool3
 
     #Load R maps and form matrices
-    '''print "Pre-allocating memory for complete covariance tensor\n"
+    print "Pre-allocating memory for complete covariance tensor\n"
     Rsmooth = np.zeros((ps.mw_size(smoothing_lmax),nmaps,nmaps),dtype=np.float64) #Pre-allocate array
     for i in xrange(nmaps):
         for j in xrange(i+1):
-            R_fits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_Rsmooth' + str(i) + str(j) +'.npy'
+            R_fits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_Rsmooth' + str(i + 9 - nmaps) + str(j + 9 - nmaps) +'.npy'
             if mapsextra[0] == -1: #Scaling function
-                R_fits = scal_outfits[:-4] + '_Rsmooth' + str(i) + str(j) +'.npy'
+                R_fits = scal_outfits[:-4] + '_Rsmooth' + str(i + 9 - nmaps) + str(j + 9 - nmaps) +'.npy'
             print "Here"
             Rsmooth[:,i,j] = np.load(R_fits)
             print "Here2"
             if i != j:
-                Rsmooth[:,j,i] = Rsmooth[:,i,j]'''
+                Rsmooth[:,j,i] = Rsmooth[:,i,j]
 
     #Compute inverse covariance matrices
-    '''print "Calculating inverse covariance matrices\n"
+    print "Calculating inverse covariance matrices\n"
     Rinv = np.linalg.inv(Rsmooth) #Parallel vers. slower!?- LARGEST MEMORY COST: 2*9*9*(8000^2)*complex128=0.2TB
-    del Rsmooth'''
+    del Rsmooth
 
     #Compute weights vectors (at each pixel)
-    '''wknumer = np.sum(Rinv,axis=-1)
+    wknumer = np.sum(Rinv,axis=-1)
     del Rinv
     wkdenom = np.sum(wknumer,axis=-1)
     wk = wknumer / wkdenom[:,None]
-    del wknumer,wkdenom'''
+    del wknumer,wkdenom
 
     #Saving or loading weights tensor for TESTING
     wkfits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_weights.npy'
     if mapsextra[0] == -1:
         wkfits = scal_outfits[:-4] + '_weights.npy'
-    #np.save(wkfits,wk)
-    wk = np.load(wkfits)
+    np.save(wkfits,wk)
+    #wk = np.load(wkfits)
     #Dropping some channels for TESTING
-    if mapsextra[0] > 33:
+    '''if mapsextra[0] > 33:
         wk[:,0] = 0.
     if mapsextra[0] > 35:
         wk[:,1] = 0.
     if mapsextra[0] > 40:
         wk[:,2] = 0.
     if mapsextra[0] > 42:
-        wk[:,3] = 0.
+        wk[:,3] = 0.'''
 
     #Map loading within sub-process
     mapsdouble = np.zeros((len(wk),len(wk[0])),dtype=np.float64) #Pre-allocate array
     for i in xrange(nmaps):
-        wav_fits = wav_fits_root[i] + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_double.npy'
+        wav_fits = wav_fits_root[i + 9 - nmaps] + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_double.npy'
         if mapsextra[0] == -1: #Scaling function
-            wav_fits = scal_fits[i][:-4] + '_double.npy'
+            wav_fits = scal_fits[i + 9 - nmaps][:-4] + '_double.npy'
         mapsdouble[:,i] = np.real(np.load(wav_fits,mmap_mode='r')) #Throw away zero imaginary part
 
     #Dot weights with maps (at each small pixel) - at double l(j)
@@ -293,7 +303,7 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     print "Downgrading resolution of CMB wavelet map"
     finalmapalms = ps.map2alm_mw(finalmap,smoothing_lmax,spin)
     del finalmap
-    alms_fname = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_alms_zeroweights.fits'
+    alms_fname = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_alms.fits'
     if mapsextra[0] == -1: #Scaling function
         alms_fname = scal_outfits[:-4] + '_alms.fits'
     hp.write_alm(alms_fname,finalmapalms,lmax=scale_lmax-1,mmax=scale_lmax-1)
@@ -303,9 +313,9 @@ def s2let_ilc_dir_para(mapsextra): #mapsextra = (j,n)
     del finalmapalmstruncate
     
     #Saving output map
-    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '_zeroweights.npy'
+    wav_outfits = wav_outfits_root + '_j' + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '.npy'
     if mapsextra[0] == -1:
-        wav_outfits = scal_outfits
+        wav_outfits = scal_outfits[:-4] + '.npy'
     np.save(wav_outfits,finalmaphalf)
     del finalmaphalf
 
@@ -330,7 +340,7 @@ def test_ilc(mapsextra): #mapsextra = (j,n) [Testing on 100 GHz map]
 if __name__ == "__main__":
     ##Input
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
-    ellmax = 3999 #S2LET parameters - actually band-limits to 1 less
+    ellmax = 2500 #S2LET parameters - actually band-limits to 1 less
     wavparam = 1.2
     wavparam_str = '1dot2'
     ndir = 1 #No. directions for each wavelet scale
@@ -339,8 +349,8 @@ if __name__ == "__main__":
     jmin = 25
     jmax = ps.pys2let_j_max(wavparam,ellmax,jmin)
 
-    fitsdir = '/home/keir/s2let_ilc_data/1dot2/' #'/Users/keir/Documents/s2let_ilc_planck/weights/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    fitsroot = 'planck_deconv_tapered_' #'ffp6_fiducial_withPS_tapered_' #'planck_deconv_tapered_minusgaussps_' #'planck_deconv_tapered_pr1_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
+    fitsdir = '/home/keir/s2let_ilc_data/ffp6_pla_data/' #'/Users/keir/Documents/s2let_ilc_planck/weights/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    fitsroot = 'ffp6_pla_deconv_' #'planck_deconv_tapered_thresh_' #'ffp6_fiducial_withPS_tapered_' #'planck_deconv_tapered_minusgaussps_' #'planck_deconv_tapered_pr1_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_' #'simu_dirty_beam_wmap_9yr_' #'wmap_deconv_nosource_smoothw_extrapolated_9yr_'
     fitscode = ['30','44','70','100','143','217','353','545','857'] #['k','ka','q','v','w']
     scal_fits = [None]*nmaps
     wav_fits_root = [None]*nmaps
@@ -349,22 +359,22 @@ if __name__ == "__main__":
         wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     outdir = fitsdir
-    outroot = 's2let_ilc_dir_hypatia_memeff_' + fitsroot
+    outroot = 's2let_ilc_dir_hypatia_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_' + wavparam_str + '_' + str(jmin) + '_' + str(ndir)
 
     #Run ILC on scaling function map
     nprocess2 = 9
-    nprocess3 = 45
+    nprocess3 = 12
     scal_output = s2let_ilc_dir_para((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
     nprocess = 1
     nprocess2 = 9
-    nprocess3 = 23
+    nprocess3 = 12
 
-    jmin_real = jmax
-    jmax_real = jmax
+    jmin_real = jmin
+    jmax_real = 41
     ndir_min = 0
     ndir_max = ndir - 1
 
