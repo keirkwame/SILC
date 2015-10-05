@@ -38,7 +38,7 @@ for i in xrange(len(fits)):
 
 #Output map FITS files
 outdir = fitsdir
-outroot = 'planck_filled_minusgaussps_' #'wmap_deconv_nosource_9yr_'
+outroot = 'planck_filled_minusgaussps2_' #'wmap_deconv_nosource_9yr_'
 outcode = fitscode
 outend = '_pr1.fits' #'.fits'
 outfits = [None]*nmaps
@@ -49,8 +49,9 @@ for i in xrange(len(outfits)):
 
 #Flux conversion factors and FWHM's
 fluxfacs = np.array([1./23.5099, 1./55.7349 ,1./129.1869, 1./244.0960, 1./371.7327, 1./483.6874, 1./287.4517, 1./58.0356, 1./2.2681]) #K_CMB / (MJy/sr) #np.array([262.7,211.9,219.6,210.1,179.2]) #uK Jy^(-1)
-facs = (4. * mh.log(2.) * 1.e-9 * 10800 * 10800 * fluxfacs) / (mh.pi**3)
-fwhms = [32.38,27.10,13.30,9.88,7.18,4.87,4.65,4.72,4.39] #arcmin (Planck) #[0.88,0.66,0.51,0.35,0.22] #deg - sqrt(solid_angle) #Planck - each source also has own eff. Gauss. FWHM
+fwhms = np.array([32.38,27.10,13.30,9.88,7.18,4.87,4.65,4.72,4.39]) #arcmin (Planck) #[0.88,0.66,0.51,0.35,0.22] #deg - sqrt(solid_angle) #Planck - each source also has own eff. Gauss. FWHM
+fwhms_rad = np.radians(fwhms / 60.)
+fac = (4. * mh.log(2.)) / mh.pi
 
 #Load maps
 maps = [None]*nmaps
@@ -67,20 +68,22 @@ samppixsall = np.array([0])
 for j in xrange(nmaps): #len(sigmas)): #Loop over maps
     #Load catalogue
     full_catalog = af.open(psc[j])[1].data
-    catalog =  np.array([full_catalog['GLON'],full_catalog['GLAT'],full_catalog['DETFLUX'],full_catalog['GAUFLUX'],full_catalog['GAU_FWHM_EFF'],full_catalog['EXTENDED']]).T #GLON,GLAT,mJy,mJy,arcmin,flag #np.loadtxt(psc,usecols=(2,3,4,5,6,7,8)) #lon,lat,K,Ka,Q,V,W
+    catalog =  np.array([full_catalog['GLON'],full_catalog['GLAT'],full_catalog['DETFLUX'],full_catalog['GAUFLUX'],full_catalog['GAU_FWHM_EFF'],full_catalog['EXTENDED']]).T #GLON (degrees),GLAT (degrees),mJy,mJy,arcmin,flag #np.loadtxt(psc,usecols=(2,3,4,5,6,7,8)) #lon,lat,K,Ka,Q,V,W
 
     coords = catalog[:,:2] #lon,lat
     coords[:,1] = 90. - coords[:,1] #phi,theta
     coords = np.radians(coords) #Convert to radians
-    catalog[:,3][np.isnan(catalog[:,3])] = 0. #Set sentinel values (WMAP = -9.9, Planck = nan) to 0
-    catalog[:,3][catalog[:,3] < 0.] = 0. #Throw out spurious negative fluxes
-    catalog[:,4][np.isnan(catalog[:,4])] = 1.
-    temps = (catalog[:,2] * facs[j]) / np.square(fwhms[j]) #catalog[:,3]) #Using DETFLUX
-    temps[catalog[:,-1] == 1] = (catalog[:,3][catalog[:,-1] == 1] * facs[j]) / np.square(catalog[:,4][catalog[:,-1] == 1]) #Using GAUFLUX if EXTENDED
+
+    catalog[:,2:4][np.isnan(catalog[:,2:4])] = 0. #Set sentinel values (WMAP = -9.9, Planck = nan) to 0
+    catalog[:,2:4][catalog[:,2:4] < 0.] = 0. #Throw out spurious negative fluxes
+    catalog[:,4][np.isnan(catalog[:,4])] = 60. #Set nan FWHM's to 1 deg to prevent error
+
+    temps = (catalog[:,2] * 1e-9 * fluxfacs[j] * fac) / np.square(fwhms_rad[j]) #catalog[:,3]) #Using DETFLUX
+    temps[catalog[:,-1] == 1] = (catalog[:,3][catalog[:,-1] == 1] * 1e-9 * fluxfacs[j] * fac) / np.square(np.radians(catalog[:,4][catalog[:,-1] == 1])) #Using GAUFLUX if EXTENDED
     #catalog[:,2:] * fluxfacs[:,None].T * 0.001 #mK
+
     sigmas = np.radians(catalog[:,4] / 60.) / (2.*mh.sqrt(2.*mh.log(2.))) #np.radians(fwhms) / (2.*mh.sqrt(2.*mh.log(2.))) #sigma in radians
-    #sigmas = np.zeros_like(temps)
-    sigmas[catalog[:,-1] == 0] = np.radians(fwhms[j] / 60.) / (2.*mh.sqrt(2.*mh.log(2.))) #Use beamFWHM if not EXTENDED
+    sigmas[catalog[:,-1] == 0] = fwhms_rad[j] / (2.*mh.sqrt(2.*mh.log(2.))) #Use beamFWHM if not EXTENDED
 
     for i in xrange(len(coords)): #Loop over point sources
         print 'Subtracting Gaussian profile for point source', i+1, '/', len(coords), 'map', j
