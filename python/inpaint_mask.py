@@ -80,8 +80,8 @@ if __name__ == "__main__":
     #mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
     #y = find_holes(mask,nside)
 
-    bad_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_51.fits') #/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
-    good_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_52.fits')
+    bad_map = hp.read_map('/home/keir/s2let_ilc_data/1dot2/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits') #/home/keir/s2let_ilc_data/masks/planck2015_2_cmb_map_99.fits') #/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_51.fits') #/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
+    good_map = hp.read_map('/home/keir/s2let_ilc_data/masks/planck2015_2_cmb_map_100.fits') #/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_52.fits')
     new_map = cp.deepcopy(bad_map)
     holemap = cp.deepcopy(bad_map)
 
@@ -100,8 +100,8 @@ if __name__ == "__main__":
     nholes = len(circpixs)'''
     
     #Using NILC mask holes
-    holes = np.load('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_holes_ring.npy') #Pix no,hole index
-    rims = np.load('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
+    holes = np.load('/home/keir/s2let_ilc_data/masks/nilc_pr1_builtmask_holes_ring.npy') #/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_holes_ring.npy') #Pix no,hole index
+    rims = np.load('/home/keir/s2let_ilc_data/masks/nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
     hole_indices = np.unique(holes[1])
     nholes = len(hole_indices)
     circpixs = [None]*nholes
@@ -109,10 +109,10 @@ if __name__ == "__main__":
     rimindex = [None]*nholes
 
     #Loading random realisations for covariance estimation
-    rand_realise = [None]*100
-    for i in xrange(100):
+    rand_realise = [None]*98
+    for i in xrange(98):
         print '\n', i+1
-        fname = '/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_' + str(i+1) + '.fits'
+        fname = '/home/keir/s2let_ilc_data/masks/planck2015_2_cmb_map_' + str(i+1) + '.fits' #'/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_' + str(i+1) + '.fits'
         rand_realise[i] = hp.read_map(fname,memmap=True)
     
     #Filling in holes
@@ -123,15 +123,15 @@ if __name__ == "__main__":
         hole_index = hole_indices[hole]
         circpixs[hole] = holes[0,np.where(holes[1] == hole_index)[0]]
         rimpixs[hole] = rims[0,np.where(rims[1] == hole_index)[0]]
-        rimpixs[hole] = np.delete(rimpixs[hole],np.where(rimpixs[holes] == -1)[0]) #Remove '-1'
+        rimpixs[hole] = np.delete(rimpixs[hole],np.where(rimpixs[hole] == -1)[0]) #Remove '-1'
         
         T1 = bad_map[circpixs[hole]]
         T2 = bad_map[rimpixs[hole]]
         T1_tilde = good_map[circpixs[hole]]
         T2_tilde = good_map[rimpixs[hole]]
-        sigma12_rand = [None]*100
-        sigma22_rand = [None]*100
-        for i in xrange(100):
+        sigma12_rand = [None]*98
+        sigma22_rand = [None]*98
+        for i in xrange(98):
             #print i+1
             T1_rand = rand_realise[i][circpixs[hole]]
             T2_rand = rand_realise[i][rimpixs[hole]]
@@ -142,6 +142,8 @@ if __name__ == "__main__":
         
         newvals = gauss_inpaint(T1,T2,T1_tilde,T2_tilde,sigma12_rand,sigma22_rand)
         new_map[circpixs[hole]] = newvals
+
+    hp.write_map('/home/keir/s2let_ilc_data/masks/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon_inpaint.fits',new_map)
 
     resid_map = (new_map - bad_map) / bad_map
 
