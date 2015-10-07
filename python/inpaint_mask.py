@@ -2,6 +2,70 @@ import numpy as np
 import healpy as hp
 import math as mh
 import copy as cp
+import multiprocessing as mg
+import multiprocessing.pool
+import pys2let as ps
+import random
+import string
+import itertools
+import os
+
+#From http://stackoverflow.com/questions/15118344/system-error-while-running-subprocesses-using-multiprocessing
+### A helper for letting the forked processes use data without pickling.
+_data_name_cands = (
+                    '_data_' + ''.join(random.sample(string.ascii_lowercase, 10))
+                    for _ in itertools.count())
+class ForkedData(object):
+    '''
+        Class used to pass data to child processes in multiprocessing without
+        really pickling/unpickling it. Only works on POSIX.
+        
+        Intended use:
+        - The master process makes the data somehow, and does e.g.
+        data = ForkedData(the_value)
+        - The master makes sure to keep a reference to the ForkedData object
+        until the children are all done with it, since the global reference
+        is deleted to avoid memory leaks when the ForkedData object dies.
+        - Master process constructs a multiprocessing.Pool *after*
+        the ForkedData construction, so that the forked processes
+        inherit the new global.
+        - Master calls e.g. pool.map with data as an argument.
+        - Child gets the real value through data.value, and uses it read-only.
+        '''
+    # TODO: does data really need to be used read-only? don't think so...
+    # TODO: more flexible garbage collection options
+    def __init__(self, val):
+        g = globals()
+        self.name = next(n for n in _data_name_cands if n not in g)
+        g[self.name] = val
+        self.master_pid = os.getpid()
+    
+    def __getstate__(self):
+        if os.name != 'posix':
+            raise RuntimeError("ForkedData only works on OSes with fork()")
+        return self.__dict__
+    
+    @property
+    def value(self):
+        return globals()[self.name]
+    
+    def __del__(self):
+        if os.getpid() == self.master_pid:
+            del globals()[self.name]
+
+#From http://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
+class NoDaemonProcess(mg.Process):
+    # make 'daemon' attribute always return False
+    def _get_daemon(self):
+        return False
+    def _set_daemon(self, value):
+        pass
+    daemon = property(_get_daemon, _set_daemon)
+
+# We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+# because the latter is only a wrapper function, not a proper class.
+class MyPool(mg.pool.Pool):
+    Process = NoDaemonProcess
 
 def find_holes(mask,nside):
     #TESTING
@@ -57,14 +121,12 @@ def find_rims(holes,nside):
             lim = len(rimpixs[hole])
         rimindex[hole] = np.array([hole_index]*lim)
 
-        np.save('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_rims_ring.npy',np.vstack((np.concatenate(rimpixs),np.concatenate(rimindex))))
+    np.save('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_rims_ring.npy',np.vstack((np.concatenate(rimpixs),np.concatenate(rimindex))))
 
     return np.concatenate(rimpixs), np.concatenate(rimindex)
 
-def gauss_inpaint(T1,T2,T1_tilde,T2_tilde,sigma12,sigma22):
+def gauss_inpaint(T2,T1_tilde,T2_tilde,sigma12,sigma22):
     diff2 = T2 - T2_tilde
-    #sigma12 = np.outer(T1,T2)
-    #sigma22 = np.outer(T2,T2)
     #Add noise to diagonal elements
     for i in xrange(len(sigma22)):
         sigma22[i,i] = sigma22[i,i] + 1.e-20
@@ -73,17 +135,64 @@ def gauss_inpaint(T1,T2,T1_tilde,T2_tilde,sigma12,sigma22):
     T1_constrain = np.dot(sigma_constrain,diff2)
     T1_hat = T1_tilde + T1_constrain
 
-    return T1_hat #diff2,sigma12,sigma22
+    return T1_hat
+
+def inpaint_para(hole_index):
+    print "Filling in hole for hole_index =", hole_index
+    circpixs = holes[0,np.where(holes[1] == hole_index)[0]]
+    rimpixs = rims[0,np.where(rims[1] == hole_index)[0]]
+    rimpixs = np.delete(rimpixs,np.where(rimpixs == -1)[0]) #Remove '-1'
+    
+    T2 = bad_map[rimpixs]
+    T1_tilde = good_map[circpixs]
+    T2_tilde = good_map[rimpixs]
+    sigma12_rand = [None]*nrand
+    sigma22_rand = [None]*nrand
+    for i in xrange(nrand):
+        T1_rand = rand_realise[i][circpixs]
+        T2_rand = rand_realise[i][rimpixs]
+        sigma12_rand[i] = np.outer(T1_rand,T2_rand)
+        sigma22_rand[i] = np.outer(T2_rand,T2_rand)
+    sigma12_rand = np.mean(np.array(sigma12_rand),axis=0)
+    sigma22_rand = np.mean(np.array(sigma22_rand),axis=0)
+    
+    newvals = gauss_inpaint(T2,T1_tilde,T2_tilde,sigma12_rand,sigma22_rand)
+    print "Finished filling in hole for hole_index =", hole_index
+
+    return newvals
 
 if __name__ == "__main__":
-    nside = 2048
-    #mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
-    #y = find_holes(mask,nside)
+    '''mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
+    y = find_holes(mask,nside)'''
 
-    bad_map = hp.read_map('/home/keir/s2let_ilc_data/1dot2/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits') #/home/keir/s2let_ilc_data/masks/planck2015_2_cmb_map_99.fits') #/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_51.fits') #/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
-    good_map = hp.read_map('/home/keir/s2let_ilc_data/masks/planck2015_2_cmb_map_100.fits') #/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_52.fits')
+    nprocess = 4
+
+    #Set directory structure
+    comp = 0
+    
+    if comp == 0: #Keir's iMac
+        #bad_dir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+        bad_dir = '/Users/keir/Documents/s2let_ilc_planck/'
+        good_dir = '/Users/keir/Documents/s2let_ilc_planck/'
+        holes_dir = good_dir
+    elif comp == 1: #Hypatia
+        bad_dir = '/home/keir/s2let_ilc_data/1dot2/'
+        good_dir = '/home/keir/s2let_ilc_data/masks/'
+        holes_dir = good_dir
+    
+    #bad_map = hp.read_map(bad_dir + 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
+    bad_map = hp.read_map(bad_dir + 'planck2015_2_cmb_map_99.fits')
+    nside = hp.get_nside(bad_map)
+    good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_100.fits')
     new_map = cp.deepcopy(bad_map)
-    holemap = cp.deepcopy(bad_map)
+    hole_map = cp.deepcopy(bad_map)
+
+    #Using NILC mask holes and rims
+    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring.npy') #Pix no, hole index
+    #holes = holes[:,np.where(holes[1] < 50)[0]] #Limit no. holes for testing
+    rims = np.load(holes_dir + 'nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
+    #rims = rims[:,np.where(rims[1] < 50)[0]]
+    hole_indices = np.unique(holes[1]) #Sorted and unique
 
     #Using query_disc to form holes and rims
     '''k = 0
@@ -98,71 +207,38 @@ if __name__ == "__main__":
             print len(circpixs[k]), len(rimpixs[k])
             k+=1
     nholes = len(circpixs)'''
-    
-    #Using NILC mask holes
-    holes = np.load('/home/keir/s2let_ilc_data/masks/nilc_pr1_builtmask_holes_ring.npy') #/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_holes_ring.npy') #Pix no,hole index
-    rims = np.load('/home/keir/s2let_ilc_data/masks/nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
-    hole_indices = np.unique(holes[1])
-    nholes = len(hole_indices)
-    circpixs = [None]*nholes
-    rimpixs = [None]*nholes
-    rimindex = [None]*nholes
 
     #Loading random realisations for covariance estimation
-    rand_realise = [None]*98
-    for i in xrange(98):
+    nrand = 98
+    rand_realise = [None]*nrand
+    for i in xrange(nrand):
         print '\n', i+1
-        fname = '/home/keir/s2let_ilc_data/masks/planck2015_2_cmb_map_' + str(i+1) + '.fits' #'/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_' + str(i+1) + '.fits'
+        fname = good_dir + 'planck2015_2_cmb_map_' + str(i+1) + '.fits'
         rand_realise[i] = hp.read_map(fname,memmap=True)
     
     #Filling in holes
-    #for hole in xrange(len(circpixs)): #Looping over holes
-    for hole in xrange(nholes):
-        print "Filling in hole", hole+1, "/", nholes
-        #Extracting hole pixels and rim pixels
-        hole_index = hole_indices[hole]
-        circpixs[hole] = holes[0,np.where(holes[1] == hole_index)[0]]
-        rimpixs[hole] = rims[0,np.where(rims[1] == hole_index)[0]]
-        rimpixs[hole] = np.delete(rimpixs[hole],np.where(rimpixs[hole] == -1)[0]) #Remove '-1'
-        
-        T1 = bad_map[circpixs[hole]]
-        T2 = bad_map[rimpixs[hole]]
-        T1_tilde = good_map[circpixs[hole]]
-        T2_tilde = good_map[rimpixs[hole]]
-        sigma12_rand = [None]*98
-        sigma22_rand = [None]*98
-        for i in xrange(98):
-            #print i+1
-            T1_rand = rand_realise[i][circpixs[hole]]
-            T2_rand = rand_realise[i][rimpixs[hole]]
-            sigma12_rand[i] = np.outer(T1_rand,T2_rand)
-            sigma22_rand[i] = np.outer(T2_rand,T2_rand)
-        sigma12_rand = np.mean(np.array(sigma12_rand),axis=0)
-        sigma22_rand = np.mean(np.array(sigma22_rand),axis=0)
-        
-        newvals = gauss_inpaint(T1,T2,T1_tilde,T2_tilde,sigma12_rand,sigma22_rand)
-        new_map[circpixs[hole]] = newvals
+    pool = mg.Pool(nprocess)
+    newvals_list = pool.map(inpaint_para,hole_indices) #Ordered by hole index
+    pool.close()
+    pool.join()
 
-    hp.write_map('/home/keir/s2let_ilc_data/masks/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon_inpaint.fits',new_map)
+    #newvals_list = inpaint_para(hole_indices[0])
 
-    resid_map = (new_map - bad_map) / bad_map
+    sorted_indices = np.argsort(holes[1]) #Sort by hole index
+    holes_sorted = holes[:,sorted_indices]
+    new_map[holes_sorted[0]] = np.concatenate(newvals_list)
+    #hp.write_map(good_dir + 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon_inpaint_test50.fits',new_map)
+    hp.write_map(good_dir + 'planck2015_2_cmb_map_99_inpaint_nilcmask80.fits',new_map)
 
-    holemask = np.zeros(hp.nside2npix(nside))
-    holemask[np.concatenate(circpixs[:])] = 1
-    holemask[np.concatenate(rimpixs[:])] = 2
-    holemap[np.concatenate(circpixs[:])] = np.nan
+    hole_map[holes[0]] = np.nan
+    hole_mask = np.zeros(hp.nside2npix(nside))
+    hole_mask[holes[0]] = 1
+    hole_mask[rims[0]] = 2
 
-    print "Calculating power spectra"
-    '''bad_cls = hp.anafast(bad_map,lmax=3999)
-    new_cls = hp.anafast(new_map,lmax=3999)
-    ell = np.arange(len(bad_cls))
-    invtwopi = 1. / (2.*mh.pi)'''
-    
     '''circpixs2 = np.union1d(hp.query_disc(nside,hp.ang2vec(.25*mh.pi,0.*mh.pi),.005*mh.pi),hp.query_disc(nside,hp.ang2vec(.25*mh.pi,.005*mh.pi),.005*mh.pi))
     testmask = np.ones(hp.nside2npix(nside))
     testmask[circpixs] = 0
     testmask[circpixs2] = 0
-
     y = find_holes(testmask,nside)
     holemask = np.zeros(hp.nside2npix(nside)) - 1.
     holemask[y[0]] = y[1]'''
