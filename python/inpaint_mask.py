@@ -107,21 +107,25 @@ def find_rims(holes,nside):
     
     for hole in xrange(nholes):
         print "Forming rim to hole", hole+1, "/", nholes
-        #Extracting hole pixels and rim pixels
+        #Extracting hole pixels
         hole_index = hole_indices[hole]
-        circpixs[hole] = holes[0,np.where(holes[1] == hole_index)[0]]
-        rimpixs[hole] = rims[0,np.where(rims[1] == hole_index)[0]]
+        circpixs[hole] = holes[0,holes[1] == hole_index]
         pix_neighbours = hp.get_all_neighbours(nside,circpixs[hole]) #Inc. "-1"
-        rimpixs[hole] = np.setdiff1d(np.concatenate(pix_neighbours),holes[0]) #Remove any existing hole pixels
-        lim = len(rimpixs[hole])
+        rimpixs[hole] = np.setdiff1d(np.concatenate(pix_neighbours),np.concatenate((holes[0],np.array([-1])))) #Remove any existing hole pixels & "-1"
+        #lim = len(rimpixs[hole])
+        for iter in xrange(3): #Ensure a minimum rim thickness of 5 pixels
+            pix_neighbours = hp.get_all_neighbours(nside,rimpixs[hole])
+            new_rimpixs = np.setdiff1d(np.concatenate(pix_neighbours),np.concatenate((holes[0],np.array([-1]),rimpixs[hole]))) # - holes & rim & "-1"
+            rimpixs[hole] = np.concatenate((rimpixs[hole],new_rimpixs))
+            lim = len(rimpixs[hole])
         while lim < 80: #Iterate until have at least 80 border pixels (N_side = 2048)
             pix_neighbours = hp.get_all_neighbours(nside,rimpixs[hole])
-            new_rimpixs = np.setdiff1d(np.concatenate(pix_neighbours),np.concatenate((holes[0],rimpixs[hole]))) # -holes & rim
+            new_rimpixs = np.setdiff1d(np.concatenate(pix_neighbours),np.concatenate((holes[0],np.array([-1]),rimpixs[hole]))) # - holes & rim & "-1"
             rimpixs[hole] = np.concatenate((rimpixs[hole],new_rimpixs))
             lim = len(rimpixs[hole])
         rimindex[hole] = np.array([hole_index]*lim)
 
-    np.save('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_rims_ring.npy',np.vstack((np.concatenate(rimpixs),np.concatenate(rimindex))))
+    np.save('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask_rims_ring_enlarged.npy',np.vstack((np.concatenate(rimpixs),np.concatenate(rimindex))))
 
     return np.concatenate(rimpixs), np.concatenate(rimindex)
 
@@ -172,29 +176,33 @@ if __name__ == "__main__":
     comp = 1
     
     if comp == 0: #Keir's iMac
-        #bad_dir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-        bad_dir = '/Users/keir/Documents/s2let_ilc_planck/'
+        bad_dir = '/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+        #bad_dir = '/Users/keir/Documents/s2let_ilc_planck/'
         good_dir = '/Users/keir/Documents/s2let_ilc_planck/'
         holes_dir = good_dir
     elif comp == 1: #Hypatia
-        #bad_dir = '/home/keir/s2let_ilc_data/1dot2/'
-        bad_dir = '/home/keir/s2let_ilc_data/masks/'
+        bad_dir = '/home/keir/s2let_ilc_data/1dot2/'
+        #bad_dir = '/home/keir/s2let_ilc_data/masks/'
         good_dir = '/home/keir/s2let_ilc_data/masks/'
         holes_dir = good_dir
     
-    #bad_map = hp.read_map(bad_dir + 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
-    bad_map = hp.read_map(bad_dir + 'planck2015_2_cmb_map_2.fits')
+    bad_map = hp.read_map(bad_dir + 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
+    #bad_map = hp.read_map(bad_dir + 'planck2015_2_cmb_map_1.fits')
     nside = hp.get_nside(bad_map)
-    good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_3.fits')
+    good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
     new_map = cp.deepcopy(bad_map)
     hole_map = cp.deepcopy(bad_map)
 
     #Using NILC mask holes and rims
     holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring.npy') #Pix no, hole index
-    holes = holes[:,np.where(holes[1] < 200)[0]] #Limit no. holes for testing
+    #holes = holes[:,np.where(holes[1] < 200)[0]] #Limit no. holes for testing
     rims = np.load(holes_dir + 'nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
-    rims = rims[:,np.where(rims[1] < 200)[0]]
-    hole_indices = np.unique(holes[1]) #Sorted and unique
+    #rims = rims[:,np.where(rims[1] < 200)[0]]
+
+    hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
+    hole_indices = hole_sizes[0,hole_sizes[1]<900]
+    #hole_indices = np.unique(holes[1]) #Sorted and unique
+    print len(hole_indices)
 
     #Using query_disc to form holes and rims
     '''k = 0
@@ -224,13 +232,13 @@ if __name__ == "__main__":
     hole_indices = np.unique(holes[1]) #Sorted and unique'''
 
     #Loading random realisations for covariance estimation
-    nrand = 1
+    nrand = 999
     rand_realise = [None]*nrand
     for i in xrange(nrand):
-        print i + 1
+        print i + 2
         '''fname = good_dir + 'planck2015_2_cmb_map_' + str(i+1) + '.fits'
         rand_realise[i] = hp.read_map(fname,memmap=True)'''
-        rand_realise[i] = np.load(good_dir + 'planck2015_2_cmb_map_' + str(i+1) + '.npy',mmap_mode='r')
+        rand_realise[i] = np.load(good_dir + 'planck2015_2_cmb_map_' + str(i+2) + '.npy',mmap_mode='r')
     
     #Filling in holes
     pool = mg.Pool(nprocess)
@@ -239,21 +247,18 @@ if __name__ == "__main__":
     pool.join()
     newvals_complete = np.concatenate(newvals_list,axis=-1)
     new_map[newvals_complete[0].astype(int)] = newvals_complete[1]
-    #hp.write_map(good_dir + 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon_inpaint_test50.fits',new_map)
-    hp.write_map(good_dir + 'planck2015_2_cmb_map_2_inpaint_test200NILC_rand1.fits',new_map)
+    hp.write_map(good_dir + 's2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon_inpaint_smallNILC_rand999.fits',new_map)
+    #hp.write_map(good_dir + 'planck2015_2_cmb_map_1_inpaint_testthick3NILC_rand998.fits',new_map)
 
-    #new_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1_inpaint_test200NILC_rand430.fits')
+    #new_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1_inpaint_testfullNILC_rand500.fits')
 
-    resid_map = new_map - bad_map
+    '''resid_map = new_map - bad_map
     hole_map[holes[0]] = np.nan
     hole_mask = np.zeros(hp.nside2npix(nside))
     hole_mask[holes[0]] = 1
-    hole_mask[rims[0]] = 2
+    hole_mask[rims[0]] = 2'''
 
-    '''circpixs2 = np.union1d(hp.query_disc(nside,hp.ang2vec(.25*mh.pi,0.*mh.pi),.005*mh.pi),hp.query_disc(nside,hp.ang2vec(.25*mh.pi,.005*mh.pi),.005*mh.pi))
-    testmask = np.ones(hp.nside2npix(nside))
-    testmask[circpixs] = 0
-    testmask[circpixs2] = 0
-    y = find_holes(testmask,nside)
-    holemask = np.zeros(hp.nside2npix(nside)) - 1.
-    holemask[y[0]] = y[1]'''
+    #Calling find_rims function
+    #rims_output = find_rims(holes,nside)
+
+
