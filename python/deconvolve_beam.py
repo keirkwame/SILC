@@ -15,7 +15,7 @@ def almworker(i):
 
 def smoothfunc(x,borig): #x is range of ell's
     xmiddle = .5*(x[0]+x[-1])
-    alpha = 3./(x[-1] - xmiddle) #numer=5 for WMAP #numer=3 for Planck
+    alpha = 3.5/(x[-1] - xmiddle) #numer=5 for WMAP #numer=3 for Planck
     y = (borig * (np.exp(alpha*(x[0] - xmiddle)) + 1.))/(np.exp(alpha*(x - xmiddle)) + 1.)
     return y
 
@@ -23,15 +23,15 @@ if __name__ == "__main__":
     nprocess = 4
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     nda = 9 #No. differencing assemblies (WMAP = 10) (Planck = [effectively] 9)
-    ellmax = 4000 #Max. is 750 due to WMAP beams
+    ellmax = 3657 #Max. is 750 due to WMAP beams
     nside_out = 2048
 
     #Frequency channel map FITS files
-    fitsdir = '/Users/keir/Documents/ffp6_pla_fiducial_maps/PR1/frequency_map/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR1/' #'/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
-    fitsprefix = ['030/LFI','044/LFI','070/LFI','100/HFI','143/HFI','217/HFI','353/HFI','545/HFI','857/HFI'] #['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI']
-    fitsroot = '_SimMap_' #'planck_filled_minusgaussps2_' #'ffp6_fiducial_noPS_' #'_SkyMap_' #'ffp6_combined_'
-    fitscode = ['030-ffp6_1024','044-ffp6_1024','070-ffp6_1024','100-ffp6_2048','143-ffp6_2048','217-ffp6_2048','353-ffp6_2048','545-ffp6_2048','857-ffp6_2048'] #['30','44','70','100','143','217','353','545','857'] #['030','044','070','100','143','217','353','545','857'] #['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00']
-    fitsend = '_R1.10_nominal.fits' #'_pr1.fits' #'_full.fits' #'_nominal_map_mc_0000.fits'
+    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/' #'/Users/keir/Documents/ffp6_pla_fiducial_maps/PR1/frequency_map/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR1/' #'/home/keir/s2let_ilc_data/ffp6_data/'
+    fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI'] #['030/LFI','044/LFI','070/LFI','100/HFI','143/HFI','217/HFI','353/HFI','545/HFI','857/HFI']
+    fitsroot = '_SkyMap_' #'_SimMap_' #'planck_filled_minusgaussps2_' #'ffp6_fiducial_noPS_' #'ffp6_combined_'
+    fitscode = ['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00'] #['030-ffp6_1024','044-ffp6_1024','070-ffp6_1024','100-ffp6_2048','143-ffp6_2048','217-ffp6_2048','353-ffp6_2048','545-ffp6_2048','857-ffp6_2048'] #['30','44','70','100','143','217','353','545','857'] #['030','044','070','100','143','217','353','545','857']
+    fitsend = '_full.fits' #'_R1.10_nominal.fits' #'_pr1.fits' #'_nominal_map_mc_0000.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsprefix[i] + fitsroot + fitscode[i] + fitsend
@@ -40,16 +40,16 @@ if __name__ == "__main__":
     beamdir = '/Users/keir/Documents/s2let_ilc_planck/beams/' #'/home/keir/s2let_ilc_data/beams/'
     beamroot = 'planck_bl_'
     beamcode = ['30','44','70','100','143','217','353','545','857']
-    beamend = '_pr1.npy'
+    beamend = '_pr2.npy'
     txt = [None]*nda
     for i in xrange(len(txt)):
         txt[i] = beamdir + beamroot + beamcode[i] + beamend
 
     #Output map FITS files
-    outdir = '/Users/keir/Documents/s2let_ilc_planck/ffp6_pla_data/' #fitsdir #'/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    outroot = 'ffp6_pla_deconv_' #'planck_deconv_tapered_thresh_minusgaussps2_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_'
+    outdir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/' #'/Users/keir/Documents/s2let_ilc_planck/ffp6_pla_data/' #fitsdir #'/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
+    outroot = 'planck_deconv_tapered_thresh_lmax3657_' #'ffp6_pla_deconv_' #'planck_deconv_tapered_thresh_minusgaussps2_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_'
     outcode = beamcode
-    outend = '.fits' #'_pr1.fits' #'_pr2.fits'
+    outend = '_pr2.fits' #'_pr1.fits'
     outfits = [None]*nmaps
     for i in xrange(len(outfits)):
         outfits[i] = outdir + outroot + outcode[i] + outend
@@ -66,8 +66,8 @@ if __name__ == "__main__":
         maps[i] = hp.read_map(fits[i])
 
     #Unit conversions for 545 & 857 GHz - not necessary for Fiducial/MC simulations/minusgaussps
-    '''maps[-2] = maps[-2] / 58.0356
-    maps[-1] = maps[-1] / 2.2681'''
+    maps[-2] = maps[-2] / 58.0356
+    maps[-1] = maps[-1] / 2.2681
 
     #Load beam transfer functions
     rawbeam = [None]*nda
@@ -95,8 +95,8 @@ if __name__ == "__main__":
     combbeam = np.array(combbeam)'''
     
     #Extrapolate 30, 44 & 70 GHz (for l_max >= 2048) raw-beams by Gaussian approximation
-    fwhms = [32.24/60.,27.00/60.,13.25/60.] #[32.33/60.,27.01/60.,13.25/60.] #PR1/PR2
-    gauss30 = hp.gauss_beam(mh.radians(fwhms[0]),lmax=ellmax-1)
+    fwhms = [32.33/60.,27.01/60.,13.25/60.] #[32.24/60.,27.00/60.,13.25/60.] #PR2/PR1
+    '''gauss30 = hp.gauss_beam(mh.radians(fwhms[0]),lmax=ellmax-1)
     gauss30norm = gauss30 / gauss30[1] #Normalise to b_1 = 1
     gauss44 = hp.gauss_beam(mh.radians(fwhms[1]),lmax=ellmax-1)
     gauss44norm = gauss44 / gauss44[1] #Normalise to b_1 = 1
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     gauss70extrap = gauss70norm[2049:] * (rawbeam[2][-1]/gauss70norm[2048]) #Gauss shift to join 70-beam
     rawbeam[0] = np.concatenate((rawbeam[0],gauss30extrap))
     rawbeam[1] = np.concatenate((rawbeam[1],gauss44extrap))
-    rawbeam[2] = np.concatenate((rawbeam[2],gauss70extrap))
+    rawbeam[2] = np.concatenate((rawbeam[2],gauss70extrap))'''
     #Try replacing LFI beams with Gaussian approximations
     rawbeam[0] = hp.gauss_beam(mh.radians(fwhms[0]),lmax=ellmax-1)
     rawbeam[1] = hp.gauss_beam(mh.radians(fwhms[1]),lmax=ellmax-1)
@@ -132,13 +132,13 @@ if __name__ == "__main__":
     pixrecip2048 = np.reciprocal(hp.pixwin(2048)[:ellmax]) #70 & HFI @ Nside=2048 #Not 70 for MC
     recipcombbeam = np.reciprocal(rawbeam) #combbeam)
 
-    #TESTING thresholding of deconvolved beams to 1/b_l <= 1000
+    #Thresholding of deconvolved beams to 1/b_l <= 1000
     recipcombbeam[recipcombbeam > 1000] = 1000
 
     deconbeam = [None]*len(recipcombbeam)
-    for i in xrange(3): #len(recipcombbeam)):
+    for i in xrange(2): #len(recipcombbeam)):
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip1024 #Deconvolving to tapered 5' gaussian beam
-    for i in xrange(3,len(recipcombbeam)):
+    for i in xrange(2,len(recipcombbeam)):
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip2048 #Deconvolving to tapered 5' gaussian beam
     deconbeam = np.array(deconbeam)
 

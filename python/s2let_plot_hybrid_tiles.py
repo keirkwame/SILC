@@ -14,7 +14,7 @@ rcParams.update({'font.size': 16})
 
 ##Input
 L = 3999
-B = 2.0736
+Bs = [2.0736,1.728,1.44,1.2]
 J_min = int(mh.ceil(mh.log(100,B) - 1.)) #Chooses j_min s.t. not less than ell = 100
 print "j_min = ", J_min
 #J_min = 11
