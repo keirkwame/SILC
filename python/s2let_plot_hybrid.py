@@ -10,13 +10,13 @@ rc('text', usetex=True)
 rcParams.update({'font.size': 13})
 
 ##Changing input for S2LET ILC
-scal_maps = np.load('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/planck_deconv_tapered_thresh_lmax3657_30_scal_1192_hybridA_7_1.npy')
-wav_fits_root = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/planck_deconv_tapered_thresh_lmax3657_30_wav_1192_hybridA_7_1_A'
-ellmax = 1192
+scal_maps = np.load('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/planck2015_2_cmb_map_1_scal_300_hybridA_7_1.npy')
+wav_fits_root = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/planck2015_2_cmb_map_1_wav_300_hybridA_7_1_A'
+ellmax = 300
 scal_lmax = 128
 jmin = 7
-lamdas = np.array([2,1.4,1.3])
-l_transitions = np.array([129,838])
+lamdas = np.array([2,1.4])
+l_transitions = np.array([129])
 ndir = 1
 scal_tiles, wav_tiles, scal_bandlims, wav_bandlims, jmax, l_bounds = construct_hybrid_tiling(ellmax,jmin,lamdas,l_transitions)
 
@@ -48,7 +48,7 @@ def myplot(f, L, ax, plt, title=''):
 
 # Plot scaling function map
 fig, ax = plt.subplots(1,1)
-LIM = 0.002
+LIM = 0.0002
 myplot(scal_maps, scal_lmax, ax, r'$\textrm{Scaling function map}$')
 
 # Create giant array figure
@@ -56,7 +56,7 @@ fig, axs = plt.subplots(jmax+1, ndir, figsize=(4*ndir, 3*jmax))
 axs = axs.ravel()
 # Loop through scales j and directions n
 offset = 0
-LIM = 0.0002
+LIM = 0.00002
 for j in range(jmax+1):
     for n in range(0, ndir):
         #Loading single wavelet maps

@@ -20,24 +20,24 @@ def smoothfunc(x,borig): #x is range of ell's
     return y
 
 if __name__ == "__main__":
-    nprocess = 4
+    nprocess = 9
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     nda = 9 #No. differencing assemblies (WMAP = 10) (Planck = [effectively] 9)
-    ellmax = 3657 #Max. is 750 due to WMAP beams
+    ellmax = 3600 #Max. is 750 due to WMAP beams
     nside_out = 2048
 
     #Frequency channel map FITS files
-    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/' #'/Users/keir/Documents/ffp6_pla_fiducial_maps/PR1/frequency_map/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR1/' #'/home/keir/s2let_ilc_data/ffp6_data/'
+    fitsdir = '/home/keir/s2let_ilc_data/maps/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
     fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI'] #['030/LFI','044/LFI','070/LFI','100/HFI','143/HFI','217/HFI','353/HFI','545/HFI','857/HFI']
-    fitsroot = '_SkyMap_' #'_SimMap_' #'planck_filled_minusgaussps2_' #'ffp6_fiducial_noPS_' #'ffp6_combined_'
-    fitscode = ['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00'] #['030-ffp6_1024','044-ffp6_1024','070-ffp6_1024','100-ffp6_2048','143-ffp6_2048','217-ffp6_2048','353-ffp6_2048','545-ffp6_2048','857-ffp6_2048'] #['30','44','70','100','143','217','353','545','857'] #['030','044','070','100','143','217','353','545','857']
-    fitsend = '_full.fits' #'_R1.10_nominal.fits' #'_pr1.fits' #'_nominal_map_mc_0000.fits'
+    fitsroot = '_SkyMap_'
+    fitscode = ['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00'] #['030-ffp6_1024','044-ffp6_1024','070-ffp6_1024','100-ffp6_2048','143-ffp6_2048','217-ffp6_2048','353-ffp6_2048','545-ffp6_2048','857-ffp6_2048']
+    fitsend = '_full.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsprefix[i] + fitsroot + fitscode[i] + fitsend
 
     #WMAP beam transfer function TXT files
-    beamdir = '/Users/keir/Documents/s2let_ilc_planck/beams/' #'/home/keir/s2let_ilc_data/beams/'
+    beamdir = '/home/keir/s2let_ilc_data/beams/' #'/Users/keir/Documents/s2let_ilc_planck/beams/'
     beamroot = 'planck_bl_'
     beamcode = ['30','44','70','100','143','217','353','545','857']
     beamend = '_pr2.npy'
@@ -46,10 +46,10 @@ if __name__ == "__main__":
         txt[i] = beamdir + beamroot + beamcode[i] + beamend
 
     #Output map FITS files
-    outdir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/' #'/Users/keir/Documents/s2let_ilc_planck/ffp6_pla_data/' #fitsdir #'/home/keir/s2let_ilc_data/ffp6_data/' #'/Users/keir/Documents/s2let_ilc_planck/deconv_data/'
-    outroot = 'planck_deconv_tapered_thresh_lmax3657_' #'ffp6_pla_deconv_' #'planck_deconv_tapered_thresh_minusgaussps2_' #'ffp6_fiducial_noPS_tapered_' #'ffp6_combined_mc_0000_deconv_'
+    outdir = '/home/keir/s2let_ilc_data/hybrid_data/' #'/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
+    outroot = 'planck_deconv_tapered_thresh_lmax3600_'
     outcode = beamcode
-    outend = '_pr2.fits' #'_pr1.fits'
+    outend = '_pr2.fits'
     outfits = [None]*nmaps
     for i in xrange(len(outfits)):
         outfits[i] = outdir + outroot + outcode[i] + outend
