@@ -182,20 +182,20 @@ if __name__ == "__main__":
         good_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
         holes_dir = '/Users/keir/Documents/s2let_ilc_planck/holes/'
     elif comp == 1: #Hypatia
-        nprocess = 24
-        #bad_dir = '/home/keir/s2let_ilc_data/hybrid_data/'
-        bad_dir = '/home/keir/s2let_ilc_data/masks/'
+        nprocess = 2
+        bad_dir = '/home/keir/s2let_ilc_data/hybrid_data/'
+        #bad_dir = '/home/keir/s2let_ilc_data/masks/'
         good_dir = '/home/keir/s2let_ilc_data/masks/'
         holes_dir = good_dir
     
-    nrand = 998
+    nrand = 750
     ncmb = 2 #nrand + ncmb = 1000
 
-    #bad_map = hp.read_map(bad_dir + 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon.fits')
-    bad_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
+    bad_map = hp.read_map(bad_dir + 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon.fits')
+    #bad_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
     good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_2.fits')
-    #outfits = 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_inpaint.fits'
-    outfits = 'planck2015_2_cmb_map_1_inpaint.fits'
+    outfits = 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_inpaint.fits'
+    #outfits = 'planck2015_2_cmb_map_1_inpaint.fits'
     nside = hp.get_nside(bad_map)
     new_map = cp.deepcopy(bad_map)
     hole_map = cp.deepcopy(bad_map)

@@ -153,7 +153,7 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     for i in xrange(nrows):
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #Parallel version
-    mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
+    '''mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
     print "Forming pool"
     pool2 = mg.Pool(nprocess2)
     print "Farming out workers to run doubling function"
@@ -161,7 +161,7 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     print "Have returned from doubling workers\n"
     pool2.close()
     pool2.join()
-    del pool2
+    del pool2'''
 
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     elif comp == 1: #Hypatia
         nprocess = 1 #For distributing directions within scale
         nprocess2 = 9 #For doubling maps
-        nprocess3 = 45 #For smoothing covariance elements
+        nprocess3 = 12 #For smoothing covariance elements
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
     
     nmaps = 9 #No. maps (Planck = 9)
@@ -291,7 +291,7 @@ if __name__ == "__main__":
     lamdas = np.array([60,2,1.3,1.2])
     wavparam_code = 'C'
     l_transitions = np.array([61,513,2017])
-    ndir = 1 #No. directions for each wavelet scale
+    ndir = 2 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
     fitsroot = 'planck_deconv_tapered_thresh_lmax3600_'
@@ -321,15 +321,17 @@ if __name__ == "__main__":
     scal_output = s2let_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
-    jmin_real = jmax
-    jmax_real = jmax
+    jmin_real = jmax - 1
+    jmax_real = jmax - 1
     ndir_min = 0
-    ndir_max = ndir - 1
+    ndir_max = 0
 
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
-        mapsextra = [None]*ndir
+        k = 0
+        mapsextra = [None]*(ndir_max+1-ndir_min)
         for n in xrange(ndir_min,ndir_max+1): #Loop over directions
-            mapsextra = [(j,n)] #Map loading within sub-process
+            mapsextra[k] = (j,n) #Map loading within sub-process
+            k+=1
         print "\nForming non-daemonic pool"
         pool = MyPool(nprocess)
         print "Farming out workers to run S2LET ILC on wavelet scales\n"

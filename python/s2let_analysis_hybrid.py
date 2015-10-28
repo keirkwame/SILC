@@ -14,9 +14,9 @@ def analworker(i):
     hp.write_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/planck2015_2_cmb_map_1_bandlim3600.fits',map_bandlim)'''
 
     wav_maps, scal_maps = ps.analysis_lm2wav_manualtiling(alms,ellmax,ndir,spin,scal_tiles,wav_tiles.T.ravel(),scal_bandlims,wav_bandlims)
-    #del alms
+    del alms
     np.save(scal_outfits[i[1]],scal_maps)
-    #del scal_maps
+    del scal_maps
     
     #Splitting up output wavelet maps
     offset = 0
@@ -27,9 +27,9 @@ def analworker(i):
             wav_outfits = wav_outfits_root[i[1]] + '_' + wavparam_code + str(j) + '_n' + str(n+1) + '.npy'
             np.save(wav_outfits,wav_maps[offset:offset+nelem])
             offset += nelem
-    #del wav_maps
+    del wav_maps
 
-    return wav_maps,scal_maps #,map_bandlim,alms,cls
+    return 0 #wav_maps,scal_maps #,map_bandlim,alms,cls
 
 if __name__ == "__main__":
     ##Input
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     lamdas = np.array([60,2,1.3,1.2])
     wavparam_code = 'C'
     l_transitions = np.array([61,513,2017])
-    ndir = 1 #No. directions for each wavelet scale
+    ndir = 2 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
     fitsroot = 'planck_deconv_tapered_thresh_lmax3600_'
