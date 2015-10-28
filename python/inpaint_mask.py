@@ -173,12 +173,12 @@ if __name__ == "__main__":
     #mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
 
     #Set directory structure
-    comp = 1
+    comp = 0
     
     if comp == 0: #Keir's iMac
         nprocess = 4
-        bad_dir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
-        #bad_dir = '/Users/keir/Documents/s2let_ilc_planck/'
+        #bad_dir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
+        bad_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
         good_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
         holes_dir = '/Users/keir/Documents/s2let_ilc_planck/holes/'
     elif comp == 1: #Hypatia
@@ -208,8 +208,8 @@ if __name__ == "__main__":
 
     '''hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
     hole_indices = hole_sizes[0,hole_sizes[1]<900]'''
-    hole_indices = np.unique(holes[1]) #Sorted and unique
-    print 'No. holes =', len(hole_indices)
+    '''hole_indices = np.unique(holes[1]) #Sorted and unique
+    print 'No. holes =', len(hole_indices)'''
 
     #Using query_disc to form holes and rims
     '''k = 0
@@ -220,15 +220,11 @@ if __name__ == "__main__":
     rimpixs_disc_indices = [None]*ncirc
     for i in [21]: #[15,21,30]:
         for j in xrange(ncirc):
-            #theta = np.random.random(1)*mh.pi #random
-            #phi = np.random.random(1)*mh.pi*2. #random
-            #theta = 0.5*mh.pi
-            #phi = (k/float(ncirc))*mh.pi
             theta = mh.pi / 6.
             phi = k*theta
             circpixs_disc[k] = hp.query_disc(nside,hp.ang2vec(theta,phi),np.radians(i/60.)) #21 arcmin
             circpixs_disc_indices[k] = np.array([k]*len(circpixs_disc[k]))
-            rimpixs_disc[k] = np.setxor1d(hp.query_disc(nside,hp.ang2vec(theta,phi),np.radians(i/60.)+(0.0006*mh.pi)),circpixs_disc[k],assume_unique=True) #21 arcmin + a bit [0.00015*mh.pi]
+            rimpixs_disc[k] = np.setxor1d(hp.query_disc(nside,hp.ang2vec(theta,phi),np.radians(i/60.)+(0.00015*mh.pi)),circpixs_disc[k],assume_unique=True) #21 arcmin + a bit [0.00015*mh.pi]
             rimpixs_disc_indices[k] = np.array([k]*len(rimpixs_disc[k]))
             print len(circpixs_disc[k]), len(rimpixs_disc[k])
             k+=1
@@ -241,20 +237,21 @@ if __name__ == "__main__":
     hole_indices = np.unique(holes[1]) #Sorted and unique'''
 
     #Loading random realisations for covariance estimation
-    rand_realise = [None]*nrand
+    '''rand_realise = [None]*nrand
     for i in xrange(nrand):
         print i + ncmb + 1
-        rand_realise[i] = np.load(good_dir + 'planck2015_2_cmb_map_' + str(i+ncmb+1) + '.npy',mmap_mode='r')
+        rand_realise[i] = np.load(good_dir + 'planck2015_2_cmb_map_' + str(i+ncmb+1) + '.npy',mmap_mode='r')'''
     
     #Filling in holes
-    pool = mg.Pool(nprocess)
+    '''pool = mg.Pool(nprocess)
     newvals_list = pool.map(inpaint_para,hole_indices) #Ordered by hole index
     pool.close()
     pool.join()
     newvals_complete = np.concatenate(newvals_list,axis=-1)
     new_map[newvals_complete[0].astype(int)] = newvals_complete[1]
-    hp.write_map(bad_dir + outfits,new_map)
-    #hp.write_map(good_dir + 'planck2015_2_cmb_map_2_inpaint_test1thickcirc_rand999.fits',new_map)
+    hp.write_map(bad_dir + outfits,new_map)'''
+
+    new_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_inpaint2circ.fits')
 
     resid_map = new_map - bad_map
     hole_map[holes[0]] = np.nan

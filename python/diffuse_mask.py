@@ -4,12 +4,10 @@ import math as mh
 import copy as cp
 
 if __name__ == "__main__":
-    niter = 10000
-    #old_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/planck2015_2_cmb_map_1.fits')
-    #old_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon.fits')
-    old_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/LFI_SkyMap_070_2048_R2.01_full.fits')
-    new_map = cp.deepcopy(old_map)
+    niter = 2000
+    old_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon.fits')
     mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
+    new_map = cp.deepcopy(old_map)
     nside = hp.get_nside(mask)
     hole_pixs = np.where(mask == 0)[0]
     '''theta = mh.pi / 2.
@@ -25,5 +23,4 @@ if __name__ == "__main__":
 
     resid_map = new_map - old_map
 
-    #hp.write_map('/Users/keir/Documents/s2let_ilc_planck/deconv_data/s2let_ilc_dir_hypatia_memeff_planck_deconv_tapered_3999_1dot2_25_1_recon_diffuse.fits',new_map)
-    hp.write_map('/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/LFI_SkyMap_070_2048_R2.01_full_diffuse10000.fits',new_map)
+    hp.write_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_diffuse.fits',new_map)
