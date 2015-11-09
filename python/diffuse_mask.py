@@ -5,7 +5,7 @@ import copy as cp
 
 if __name__ == "__main__":
     niter = 2000
-    old_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon.fits')
+    old_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/HFI_SkyMap_100_2048_R2.00_full.fits')
     mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
     new_map = cp.deepcopy(old_map)
     nside = hp.get_nside(mask)
@@ -23,4 +23,4 @@ if __name__ == "__main__":
 
     resid_map = new_map - old_map
 
-    hp.write_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_diffuse.fits',new_map)
+    hp.write_map('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/planck_diffuse_100_pr2.fits',new_map)

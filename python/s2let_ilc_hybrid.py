@@ -153,7 +153,7 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     for i in xrange(nrows):
         mapsdouble[i,:] = doubleworker((mapsextra[0][i],mapsextra[1],smoothing_lmax,mapsextra[2]))'''
     #Parallel version
-    '''mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
+    mapsextra2 = [(mapsextra[0],mapsextra[1],i,scale_lmax,smoothing_lmax) for i in xrange(nmaps)]
     print "Forming pool"
     pool2 = mg.Pool(nprocess2)
     print "Farming out workers to run doubling function"
@@ -161,12 +161,15 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     print "Have returned from doubling workers\n"
     pool2.close()
     pool2.join()
-    del pool2'''
+    del pool2
 
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
     npix = hp.nside2npix(1<<(int(0.5*scale_lmax)-1).bit_length()) #Equivalent no. HEALPIX pixels
     scale_fwhm = 4. * mh.sqrt(nsamp / npix)
+    
+    #TESTING larger covariance kernel
+    scale_fwhm = 1.*scale_fwhm
     
     #Smooth covariance matrices
     #Serial version
@@ -272,13 +275,13 @@ def test_ilc(mapsextra): #mapsextra = (j,n) [Testing on 100 GHz map]
 if __name__ == "__main__":
     ##Input
     #Set directory structure
-    comp = 1
+    comp = 0
     
     if comp == 0: #Keir's iMac
         nprocess = 1 #For distributing directions within scale
         nprocess2 = 3 #For doubling maps
         nprocess3 = 4 #For smoothing covariance elements
-        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
+        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
     elif comp == 1: #Hypatia
         nprocess = 1 #For distributing directions within scale
         nprocess2 = 9 #For doubling maps
@@ -286,15 +289,15 @@ if __name__ == "__main__":
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
     
     nmaps = 9 #No. maps (Planck = 9)
-    ellmax = 3600
+    ellmax = 1300
     jmin = 0
-    lamdas = np.array([60,2,1.3,1.2])
+    lamdas = np.array([60,2,1.3])
     wavparam_code = 'C'
-    l_transitions = np.array([61,513,2017])
-    ndir = 2 #No. directions for each wavelet scale
+    l_transitions = np.array([61,513])
+    ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
-    fitsroot = 'planck_deconv_tapered_thresh_lmax3600_'
+    fitsroot = 'ffp8_diffuse_deconv_tapered_thresh_lmax1300_'
     fitscode = ['30','44','70','100','143','217','353','545','857']
     scal_fits = [None]*nmaps
     wav_fits_root = [None]*nmaps
@@ -303,7 +306,7 @@ if __name__ == "__main__":
         wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
     outdir = fitsdir
-    outroot = 's2let_ilc_' + fitsroot
+    outroot = 's2let_ilc_covar1_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
@@ -321,8 +324,8 @@ if __name__ == "__main__":
     scal_output = s2let_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
-    jmin_real = jmax - 1
-    jmax_real = jmax - 1
+    jmin_real = jmin
+    jmax_real = jmax
     ndir_min = 0
     ndir_max = 0
 

@@ -52,24 +52,24 @@ def variance(scal_map):
 if __name__ == "__main__":
     ##Input
     #Set directory structure
-    comp = 1
+    comp = 0
     
     if comp == 0: #Keir's iMac
-        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
+        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
     elif comp == 1: #Hypatia
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
 
     nprocess = 1
-    outnside = 2048
-    ellmax = 3600
+    outnside = 256
+    ellmax = 300
     jmin = 0
-    lamdas = np.array([60,2,1.3,1.2])
+    lamdas = np.array([60,2])
     wavparam_code = 'C'
-    l_transitions = np.array([61,513,2017])
+    l_transitions = np.array([61])
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
-    fitsroot = 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_'
+    fitsroot = 's2let_ilc_covar1_ffp8_diffuse_deconv_tapered_thresh_lmax3600_'
     #fitsroot = 'planck2015_2_cmb_map_1_' #TESTING
     scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)

@@ -34,25 +34,25 @@ def analworker(i):
 if __name__ == "__main__":
     ##Input
     #Set directory structure
-    comp = 1
+    comp = 0
     
     if comp == 0: #Keir's iMac
         nprocess = 4
-        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
+        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
     elif comp == 1: #Hypatia
         nprocess = 9
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
     
     nmaps = 9 #No. maps (Planck = 9)
-    ellmax = 3600
+    ellmax = 1300
     jmin = 0
-    lamdas = np.array([60,2,1.3,1.2])
+    lamdas = np.array([60,2,1.3])
     wavparam_code = 'C'
-    l_transitions = np.array([61,513,2017])
-    ndir = 2 #No. directions for each wavelet scale
+    l_transitions = np.array([61,513]) #2017
+    ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
-    fitsroot = 'planck_deconv_tapered_thresh_lmax3600_'
+    fitsroot = 'ffp8_diffuse_deconv_tapered_thresh_lmax1300_'
     fitscode = ['30','44','70','100','143','217','353','545','857']
     fitsend = '_pr2.fits'
     fits = [None]*nmaps

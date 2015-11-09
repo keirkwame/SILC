@@ -20,24 +20,24 @@ def smoothfunc(x,borig): #x is range of ell's
     return y
 
 if __name__ == "__main__":
-    nprocess = 9
+    nprocess = 4
     nmaps = 9 #No. maps (WMAP = 5) (Planck = 9)
     nda = 9 #No. differencing assemblies (WMAP = 10) (Planck = [effectively] 9)
-    ellmax = 3600 #Max. is 750 due to WMAP beams
-    nside_out = 2048
+    ellmax = 1300 #Max. is 750 due to WMAP beams
+    nside_out = 1024
 
     #Frequency channel map FITS files
-    fitsdir = '/home/keir/s2let_ilc_data/maps/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
+    fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/' #'/home/keir/s2let_ilc_data/maps/' #'/Users/keir/Documents/s2let_ilc_planck/maps/PR2/frequencyMaps/'
     fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI','HFI','HFI'] #['030/LFI','044/LFI','070/LFI','100/HFI','143/HFI','217/HFI','353/HFI','545/HFI','857/HFI']
-    fitsroot = '_SkyMap_'
-    fitscode = ['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00'] #['030-ffp6_1024','044-ffp6_1024','070-ffp6_1024','100-ffp6_2048','143-ffp6_2048','217-ffp6_2048','353-ffp6_2048','545-ffp6_2048','857-ffp6_2048']
-    fitsend = '_full.fits'
+    fitsroot = 'ffp8_diffuse_' #'_SkyMap_'
+    fitscode = ['30','44','70','100','143','217','353','545','857'] #['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.00','143_2048_R2.00','217_2048_R2.00','353_2048_R2.00','545_2048_R2.00','857_2048_R2.00'] #['030-ffp6_1024','044-ffp6_1024','070-ffp6_1024','100-ffp6_2048','143-ffp6_2048','217-ffp6_2048','353-ffp6_2048','545-ffp6_2048','857-ffp6_2048']
+    fitsend = '_pr2.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
-        fits[i] = fitsdir + fitsprefix[i] + fitsroot + fitscode[i] + fitsend
+        fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend
 
     #WMAP beam transfer function TXT files
-    beamdir = '/home/keir/s2let_ilc_data/beams/' #'/Users/keir/Documents/s2let_ilc_planck/beams/'
+    beamdir = '/Users/keir/Documents/s2let_ilc_planck/beams/' #'/home/keir/s2let_ilc_data/beams/'
     beamroot = 'planck_bl_'
     beamcode = ['30','44','70','100','143','217','353','545','857']
     beamend = '_pr2.npy'
@@ -46,8 +46,8 @@ if __name__ == "__main__":
         txt[i] = beamdir + beamroot + beamcode[i] + beamend
 
     #Output map FITS files
-    outdir = '/home/keir/s2let_ilc_data/hybrid_data/' #'/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
-    outroot = 'planck_deconv_tapered_thresh_lmax3600_'
+    outdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/' #'/home/keir/s2let_ilc_data/hybrid_data/'
+    outroot = 'ffp8_diffuse_deconv_tapered_thresh_lmax1300_'
     outcode = beamcode
     outend = '_pr2.fits'
     outfits = [None]*nmaps
@@ -121,10 +121,10 @@ if __name__ == "__main__":
     smoothbeam[smoothbegin:smoothend+1] = smoothfunc(np.arange(smoothbegin,smoothend+1),smoothbeam[smoothbegin])'''
     #For Planck, effective beam is 5' FWHM gaussian
     smoothbeam = hp.gauss_beam(mh.radians(5./60.),lmax=ellmax-1)
-    smoothbegin = 3400
+    '''smoothbegin = 3400
     smoothend = ellmax-1
     smoothbeam[smoothbegin:smoothend+1] = smoothfunc(np.arange(smoothbegin,smoothend+1),smoothbeam[smoothbegin])
-    smoothbeam_orig = hp.gauss_beam(mh.radians(5./60.),lmax=ellmax-1)
+    smoothbeam_orig = hp.gauss_beam(mh.radians(5./60.),lmax=ellmax-1)'''
 
     #Take reciprocal of beam transfer functions
     #pixrecip = np.reciprocal(hp.pixwin(hp.get_nside(maps))[:ellmax+1]) #TESTING pixwin
@@ -136,9 +136,9 @@ if __name__ == "__main__":
     recipcombbeam[recipcombbeam > 1000] = 1000
 
     deconbeam = [None]*len(recipcombbeam)
-    for i in xrange(2): #len(recipcombbeam)):
+    for i in xrange(3): #len(recipcombbeam)):
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip1024 #Deconvolving to tapered 5' gaussian beam
-    for i in xrange(2,len(recipcombbeam)):
+    for i in xrange(3,len(recipcombbeam)):
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip2048 #Deconvolving to tapered 5' gaussian beam
     deconbeam = np.array(deconbeam)
 
