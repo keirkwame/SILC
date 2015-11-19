@@ -169,7 +169,7 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     scale_fwhm = 4. * mh.sqrt(nsamp / npix)
     
     #TESTING larger covariance kernel
-    scale_fwhm = 1.*scale_fwhm
+    scale_fwhm = 15.*scale_fwhm
     
     #Smooth covariance matrices
     #Serial version
@@ -289,11 +289,11 @@ if __name__ == "__main__":
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
     
     nmaps = 9 #No. maps (Planck = 9)
-    ellmax = 1300
+    ellmax = 300
     jmin = 0
-    lamdas = np.array([60,2,1.3])
+    lamdas = np.array([60,2])
     wavparam_code = 'C'
-    l_transitions = np.array([61,513])
+    l_transitions = np.array([61])
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
@@ -306,7 +306,7 @@ if __name__ == "__main__":
         wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
     outdir = fitsdir
-    outroot = 's2let_ilc_covar1_' + fitsroot
+    outroot = 's2let_ilc_covar15_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
@@ -327,19 +327,19 @@ if __name__ == "__main__":
     jmin_real = jmin
     jmax_real = jmax
     ndir_min = 0
-    ndir_max = 0
+    ndir_max = ndir - 1
 
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
         k = 0
         mapsextra = [None]*(ndir_max+1-ndir_min)
         for n in xrange(ndir_min,ndir_max+1): #Loop over directions
-            mapsextra[k] = (j,n) #Map loading within sub-process
+            mapsextra = [(j,n)] #Map loading within sub-process
             k+=1
-        print "\nForming non-daemonic pool"
-        pool = MyPool(nprocess)
-        print "Farming out workers to run S2LET ILC on wavelet scales\n"
-        wav_output = pool.map(s2let_ilc,mapsextra)
-        pool.close()
-        pool.join()
+            print "\nForming non-daemonic pool"
+            pool = MyPool(nprocess)
+            print "Farming out workers to run S2LET ILC on wavelet scales\n"
+            wav_output = pool.map(s2let_ilc,mapsextra)
+            pool.close()
+            pool.join()
 
 

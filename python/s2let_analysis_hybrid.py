@@ -44,12 +44,12 @@ if __name__ == "__main__":
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
     
     nmaps = 9 #No. maps (Planck = 9)
-    ellmax = 1300
+    ellmax = 300
     jmin = 0
-    lamdas = np.array([60,2,1.3])
+    lamdas = np.array([60,2])
     wavparam_code = 'C'
-    l_transitions = np.array([61,513]) #2017
-    ndir = 1 #No. directions for each wavelet scale
+    l_transitions = np.array([61]) #2017
+    ndir = 5 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
     fitsroot = 'ffp8_diffuse_deconv_tapered_thresh_lmax1300_'
