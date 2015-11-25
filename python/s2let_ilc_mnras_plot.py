@@ -123,9 +123,9 @@ hp.write_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/ffp8_cmb_scl_0
 
 lmin = 2
 lmax = 3392
-'''theorycls = hp.read_cl('/Users/keir/Software/camb/planck2015_4_scalCls.fits')[0][lmin:lmax] * 1e12 #(uK)^2
+theorycls = hp.read_cl('/Users/keir/Software/camb/planck2015_4_scalCls.fits')[0][lmin:lmax] * 1e12 #(uK)^2
 ilcbeam = hp.gauss_beam(np.radians(5./60.),lmax=3391)[lmin:] #5 arcmin
-theorycls_corrected = theorycls * ilcbeam * ilcbeam'''
+theorycls_corrected = theorycls * ilcbeam * ilcbeam
 
 '''newcls_masked = hp.anafast(newmap_masked,lmax=299)
 pixrecip = 1. / hp.pixwin(hp.get_nside(newmap))[:300]
@@ -143,19 +143,29 @@ hp.write_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/ffp8_cmb_scl_0
 #newcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar10_ffp8_deconv_tapered_thresh_lmax3600_300_hybridC_0_1_recon_cls.fits')[:300] * 1e12
 
 #FFP8
-chanmaskcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_cls.fits')[lmin:lmax] * 1e12
+'''chanmaskcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_cls.fits')[lmin:lmax] * 1e12
 n2cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_2_recon_cls.fits')[lmin:lmax] * 1e12
 n3cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_3_recon_cls.fits')[lmin:lmax] * 1e12
-n4cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_1300_hybridC_0_4_recon_cls.fits')[lmin:1292] * 1e12
-n5cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_1300_hybridC_0_5_recon_cls.fits')[lmin:1292] * 1e12
-inputcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/ffp8_cmb_scl_000_full_cls_ilcbeam_lmax3399.fits')[lmin:lmax]
+n4cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_4_recon_cls.fits')[lmin:lmax] * 1e12
+n5cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_1300_hybridC_0_5_recon_cls.fits')[lmin:1292] * 1e12'''
+'''inputcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/ffp8_cmb_scl_000_full_cls_ilcbeam_lmax3399.fits')[lmin:lmax]
+
+n1cls_debias = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_cls_debias.fits')[lmin:lmax] * 1e12
+n2cls_debias = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_2_recon_cls_debias.fits')[lmin:lmax] * 1e12
+n3cls_debias = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_3_recon_cls_debias.fits')[lmin:lmax] * 1e12
+n4cls_debias = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_4_recon_cls_debias.fits')[lmin:lmax] * 1e12
+
+n1cls_deresid = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_cls_deresid.fits')[lmin:lmax] * 1e12
+n2cls_deresid = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_2_recon_cls_deresid.fits')[lmin:lmax] * 1e12
+n3cls_deresid = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_3_recon_cls_deresid.fits')[lmin:lmax] * 1e12
+n4cls_deresid = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/s2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_4_recon_cls_deresid.fits')[lmin:lmax] * 1e12'''
 
 #PR2
-#chanmaskcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_cls.fits')[lmin:lmax] * 1e12
-'''n2cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_2_recon_cls.fits')[lmin:lmax] * 1e12
+chanmaskcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_cls.fits')[lmin:lmax] * 1e12
+n2cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_2_recon_cls.fits')[lmin:lmax] * 1e12
 n3cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_3_recon_cls.fits')[lmin:lmax] * 1e12
-n4cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_1300_hybridC_0_4_recon_cls.fits')[lmin:1292] * 1e12
-n5cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_1300_hybridC_0_5_recon_cls.fits')[lmin:1292] * 1e12'''
+n4cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_4_recon_cls.fits')[lmin:lmax] * 1e12
+n5cls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/diffuse_data/s2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_0_5_recon_cls.fits')[lmin:lmax] * 1e12
 '''inputcls_corrected = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/nilc_lmax4000_cls.fits')[lmin:lmax] * 1e12
 smicacls = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/smica_pr2_ilcbeam_lmax3400_cls.fits')[lmin:lmax] * 1e12
 commcls = hp.read_cl('/Users/keir/Documents/s2let_ilc_planck/commander_pr2_ilcbeam_lmax3400_cls.fits')[lmin:lmax] * 1e12
@@ -171,13 +181,21 @@ invtwopi = 1. /(2.*mh.pi)
 chanmaskdls = chanmaskcls_corrected*ell*(ell+1)*invtwopi
 n2dls = n2cls_corrected*ell*(ell+1)*invtwopi
 n3dls = n3cls_corrected*ell*(ell+1)*invtwopi
-n4dls = n4cls_corrected*ell_short*(ell_short+1)*invtwopi
-n5dls = n5cls_corrected*ell_short*(ell_short+1)*invtwopi
-inputdls = inputcls_corrected*ell*(ell+1)*invtwopi
+n4dls = n4cls_corrected*ell*(ell+1)*invtwopi
+n5dls = n5cls_corrected*ell*(ell+1)*invtwopi
+#inputdls = inputcls_corrected*ell*(ell+1)*invtwopi
 '''smicadls = smicacls*ell*(ell+1)*invtwopi
 commdls = commcls*ell*(ell+1)*invtwopi
-sevemdls = sevemcls*ell_short*(ell_short+1)*invtwopi
-theorydls = theorycls_corrected*ell*(ell+1)*invtwopi'''
+sevemdls = sevemcls*ell_short*(ell_short+1)*invtwopi'''
+theorydls = theorycls_corrected*ell*(ell+1)*invtwopi
+'''n1debiasdls = n1cls_debias*ell*(ell+1)*invtwopi
+n2debiasdls = n2cls_debias*ell*(ell+1)*invtwopi
+n3debiasdls = n3cls_debias*ell*(ell+1)*invtwopi
+n4debiasdls = n4cls_debias*ell*(ell+1)*invtwopi
+n1deresiddls = n1cls_deresid*ell*(ell+1)*invtwopi
+n2deresiddls = n2cls_deresid*ell*(ell+1)*invtwopi
+n3deresiddls = n3cls_deresid*ell*(ell+1)*invtwopi
+n4deresiddls = n4cls_deresid*ell*(ell+1)*invtwopi'''
 
 #Bin the data for visual clarity
 binlen = 10 #Maybe 4?
@@ -186,13 +204,21 @@ n2dls_binned = np.mean(np.reshape(n2dls,(-1,binlen)),axis=-1)
 n3dls_binned = np.mean(np.reshape(n3dls,(-1,binlen)),axis=-1)
 n4dls_binned = np.mean(np.reshape(n4dls,(-1,binlen)),axis=-1)
 n5dls_binned = np.mean(np.reshape(n5dls,(-1,binlen)),axis=-1)
-inputdls_binned = np.mean(np.reshape(inputdls,(-1,binlen)),axis=-1)
+'''inputdls_binned = np.mean(np.reshape(inputdls,(-1,binlen)),axis=-1)
+n1debiasdls_binned = np.mean(np.reshape(n1debiasdls,(-1,binlen)),axis=-1)
+n2debiasdls_binned = np.mean(np.reshape(n2debiasdls,(-1,binlen)),axis=-1)
+n3debiasdls_binned = np.mean(np.reshape(n3debiasdls,(-1,binlen)),axis=-1)
+n4debiasdls_binned = np.mean(np.reshape(n4debiasdls,(-1,binlen)),axis=-1)
+n1deresiddls_binned = np.mean(np.reshape(n1deresiddls,(-1,binlen)),axis=-1)
+n2deresiddls_binned = np.mean(np.reshape(n2deresiddls,(-1,binlen)),axis=-1)
+n3deresiddls_binned = np.mean(np.reshape(n3deresiddls,(-1,binlen)),axis=-1)
+n4deresiddls_binned = np.mean(np.reshape(n4deresiddls,(-1,binlen)),axis=-1)'''
 '''smicadls_binned = np.mean(np.reshape(smicadls,(-1,binlen)),axis=-1)
 commdls_binned = np.mean(np.reshape(commdls,(-1,binlen)),axis=-1)
 sevemdls_binned = np.mean(np.reshape(sevemdls,(-1,binlen)),axis=-1)'''
 #newcls_binned = np.mean(np.reshape(newcls_corrected,(-1,binlen)),axis=-1)
 #diffusecls_binned = np.mean(np.reshape(diffusecls,(-1,binlen)),axis=-1)
-#theorydls_binned = np.mean(np.reshape(theorydls,(-1,binlen)),axis=-1)
+theorydls_binned = np.mean(np.reshape(theorydls,(-1,binlen)),axis=-1)
 #ell_binned_long = np.mean(np.reshape(ell_long,(-1,binlen)),axis=-1)
 ell_binned = np.mean(np.reshape(ell,(-1,binlen)),axis=-1)
 ell_binned_short = np.mean(np.reshape(ell_short,(-1,binlen)),axis=-1)
@@ -205,36 +231,48 @@ f, (ax0,ax1) = plt.subplots(2,sharex=True,figsize=(8,8))
 ax0.plot(ell_binned,chanmaskdls_binned,color=cols[0],label = r'$N=1$')
 ax0.plot(ell_binned,n2dls_binned,color=cols[1],label = r'$N=2$')
 ax0.plot(ell_binned,n3dls_binned,color=cols[2],label = r'$N=3$')
-ax0.plot(ell_binned_short,n4dls_binned,color=cols[3],label = r'$N=4$')
-ax0.plot(ell_binned_short,n5dls_binned,color=cols[4],label = r'$N=5$')
-ax0.plot(ell_binned,inputdls_binned,ls='--',color='k',label = r'Input')
+ax0.plot(ell_binned,n4dls_binned,color=cols[3],label = r'$N=4$')
+ax0.plot(ell_binned,n5dls_binned,color=cols[4],label = r'$N=5$')
+'''ax0.plot(ell_binned,inputdls_binned,ls='--',color='k',label = r'Input')
+ax0.plot(ell_binned,n1debiasdls_binned,color=cols[0],label = r'$N=1$ (debiased)')
+ax0.plot(ell_binned,n2debiasdls_binned,color=cols[1],label = r'$N=2$ (debiased)')
+ax0.plot(ell_binned,n3debiasdls_binned,color=cols[2],label = r'$N=3$ (debiased)')
+ax0.plot(ell_binned,n4debiasdls_binned,color=cols[3],label = r'$N=4$ (debiased)')'''
 '''ax0.plot(ell_binned,inputdls_binned,color=cols[1],label = r'NILC')
 ax0.plot(ell_binned,smicadls_binned,color=cols[2],label = r'SMICA')
 ax0.plot(ell_binned,commdls_binned,color=cols[3],label = r'Commander')
 ax0.plot(ell_binned_short,sevemdls_binned,color=cols[4],label = r'SEVEM')'''
 #ax.plot(ell_binned,newcls_binned*ell_binned*(ell_binned+1)*invtwopi,label = r'covar10')
 #ax.plot(ell_binned,diffusecls_binned*ell_binned*(ell_binned+1)*invtwopi,label = r'Theory')
-#ax0.plot(ell_binned,theorydls_binned,ls='--',color='k',label = r'Theory')
+ax0.plot(ell_binned,theorydls_binned,ls='--',color='k',label = r'Theory')
 ax0.set_xlim([0,3400])
 ax0.set_ylabel(r'$D_{\ell}$ $[{\mu\mathrm{K}}^2]$')
-ax0.legend(prop={'size':18},frameon=False) #loc='lower right')
+ax0.legend(prop={'size':18},frameon=False) #loc='lower right') #Usually 18
 
 #Cosmic variance
 
 #Plot residuals
 #FFP8
-ax1.plot(ell_binned,chanmaskdls_binned - inputdls_binned,color=cols[0],label = r'$N=1$')
-ax1.plot(ell_binned,n2dls_binned - inputdls_binned,color=cols[1],label = r'$N=2$')
-ax1.plot(ell_binned,n3dls_binned - inputdls_binned,color=cols[2],label = r'$N=3$')
-ax1.plot(ell_binned_short,n4dls_binned - inputdls_binned[:len(n4dls_binned)],color=cols[3],label = r'$N=4$')
-ax1.plot(ell_binned_short,n5dls_binned - inputdls_binned[:len(n5dls_binned)],color=cols[4],label = r'$N=5$')
+'''ax1.plot(ell_binned,chanmaskdls_binned - inputdls_binned,color=cols[0],label = r'$N=1$')
+ax1.plot(ell_binned,n2dls_binned - inputdls_binned,color=cols[2],label = r'$N=2$')
+ax1.plot(ell_binned,n3dls_binned - inputdls_binned,color=cols[4],label = r'$N=3$')
+ax1.plot(ell_binned,n4dls_binned - inputdls_binned,color=cols[6],label = r'$N=4$')
+ax1.plot(ell_binned_short,n5dls_binned - inputdls_binned[:len(n5dls_binned)],color=cols[8],label = r'$N=5$')'''
+'''ax1.plot(ell_binned,n1debiasdls_binned - inputdls_binned,color=cols[0],label = r'$N=1$ (debiased)')
+ax1.plot(ell_binned,n2debiasdls_binned - inputdls_binned,color=cols[1],label = r'$N=2$ (debiased)')
+ax1.plot(ell_binned,n3debiasdls_binned - inputdls_binned,color=cols[2],label = r'$N=3$ (debiased)')
+ax1.plot(ell_binned,n4debiasdls_binned - inputdls_binned,color=cols[3],label = r'$N=4$ (debiased)')
+ax1.plot(ell_binned,n1deresiddls_binned - inputdls_binned,ls='-.',color=cols[0],label = r'$N=1$ (debiased)')
+ax1.plot(ell_binned,n2deresiddls_binned - inputdls_binned,ls='-.',color=cols[1],label = r'$N=2$ (debiased)')
+ax1.plot(ell_binned,n3deresiddls_binned - inputdls_binned,ls='-.',color=cols[2],label = r'$N=3$ (debiased)')
+ax1.plot(ell_binned,n4deresiddls_binned - inputdls_binned,ls='-.',color=cols[3],label = r'$N=4$ (debiased)')'''
 
 #PR2
-#ax1.plot(ell_binned,chanmaskdls_binned - theorydls_binned,color=cols[0],label = r'$N=1$')
-'''ax1.plot(ell_binned,n2dls_binned - theorydls_binned,color=cols[1],label = r'$N=2$')
+ax1.plot(ell_binned,chanmaskdls_binned - theorydls_binned,color=cols[0],label = r'$N=1$')
+ax1.plot(ell_binned,n2dls_binned - theorydls_binned,color=cols[1],label = r'$N=2$')
 ax1.plot(ell_binned,n3dls_binned - theorydls_binned,color=cols[2],label = r'$N=3$')
-ax1.plot(ell_binned_short,n4dls_binned - theorydls_binned[:len(n4dls_binned)],color=cols[3],label = r'$N=4$')
-ax1.plot(ell_binned_short,n5dls_binned - theorydls_binned[:len(n5dls_binned)],color=cols[4],label = r'$N=5$')'''
+ax1.plot(ell_binned,n4dls_binned - theorydls_binned,color=cols[3],label = r'$N=4$')
+ax1.plot(ell_binned,n5dls_binned - theorydls_binned,color=cols[4],label = r'$N=5$')
 '''ax1.plot(ell_binned,inputdls_binned - theorydls_binned,color=cols[1],label = r'NILC')
 ax1.plot(ell_binned,smicadls_binned - theorydls_binned,color=cols[2],label = r'SMICA')
 ax1.plot(ell_binned,commdls_binned - theorydls_binned,color=cols[3],label = r'Commander')
@@ -256,25 +294,33 @@ f.subplots_adjust(hspace=0,right=0.99)
 plt.setp([a.get_xticklabels() for a in f.axes[:-1]], visible=False)
 
 #ax.set_yscale('log')
-plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/ffp8spec_n5_resids5.pdf')
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/nilcspec_n5_resids5.pdf')
 
 #Panel 3
 f2, ax2 = plt.subplots(1,figsize=(8,4))
 botlim = 150
 
 #FFP8
-ax2.plot(ell_binned[:botlim],chanmaskdls_binned[:botlim] - inputdls_binned[:botlim],color=cols[0],label = r'$N=1$')
-ax2.plot(ell_binned[:botlim],n2dls_binned[:botlim] - inputdls_binned[:botlim],color=cols[1],label = r'$N=2$')
-ax2.plot(ell_binned[:botlim],n3dls_binned[:botlim] - inputdls_binned[:botlim],color=cols[2],label = r'$N=3$')
-ax2.plot(ell_binned_short,n4dls_binned - inputdls_binned[:len(n4dls_binned)],color=cols[3],label = r'$N=4$')
-ax2.plot(ell_binned_short,n5dls_binned - inputdls_binned[:len(n5dls_binned)],color=cols[4],label = r'$N=5$')
+'''ax2.plot(ell_binned[:botlim],chanmaskdls_binned[:botlim] - inputdls_binned[:botlim],color=cols[0],label = r'$N=1$')
+ax2.plot(ell_binned[:botlim],n2dls_binned[:botlim] - inputdls_binned[:botlim],color=cols[2],label = r'$N=2$')
+ax2.plot(ell_binned[:botlim],n3dls_binned[:botlim] - inputdls_binned[:botlim],color=cols[4],label = r'$N=3$')
+ax2.plot(ell_binned[:botlim],n4dls_binned[:botlim] - inputdls_binned[:botlim],color=cols[6],label = r'$N=4$')
+ax2.plot(ell_binned_short,n5dls_binned - inputdls_binned[:len(n5dls_binned)],color=cols[8],label = r'$N=5$')'''
+'''ax2.plot(ell_binned[:botlim],n1debiasdls_binned[:botlim] - inputdls_binned[:botlim],color=cols[0],label = r'$N=1$ (debiased)')
+ax2.plot(ell_binned[:botlim],n2debiasdls_binned[:botlim] - inputdls_binned[:botlim],color=cols[1],label = r'$N=2$ (debiased)')
+ax2.plot(ell_binned[:botlim],n3debiasdls_binned[:botlim] - inputdls_binned[:botlim],color=cols[2],label = r'$N=3$ (debiased)')
+ax2.plot(ell_binned[:botlim],n4debiasdls_binned[:botlim] - inputdls_binned[:botlim],color=cols[3],label = r'$N=4$ (debiased)')
+ax2.plot(ell_binned[:botlim],n1deresiddls_binned[:botlim] - inputdls_binned[:botlim],ls='-.',color=cols[0],label = r'$N=1$ (debiased)')
+ax2.plot(ell_binned[:botlim],n2deresiddls_binned[:botlim] - inputdls_binned[:botlim],ls='-.',color=cols[1],label = r'$N=2$ (debiased)')
+ax2.plot(ell_binned[:botlim],n3deresiddls_binned[:botlim] - inputdls_binned[:botlim],ls='-.',color=cols[2],label = r'$N=3$ (debiased)')
+ax2.plot(ell_binned[:botlim],n4deresiddls_binned[:botlim] - inputdls_binned[:botlim],ls='-.',color=cols[3],label = r'$N=4$ (debiased)')'''
 
 #PR2
-#ax2.plot(ell_binned[:botlim],chanmaskdls_binned[:botlim] - theorydls_binned[:botlim],color=cols[0],label = r'$N=1$')
-'''ax2.plot(ell_binned[:botlim],n2dls_binned[:botlim] - theorydls_binned[:botlim],color=cols[1],label = r'$N=2$')
+ax2.plot(ell_binned[:botlim],chanmaskdls_binned[:botlim] - theorydls_binned[:botlim],color=cols[0],label = r'$N=1$')
+ax2.plot(ell_binned[:botlim],n2dls_binned[:botlim] - theorydls_binned[:botlim],color=cols[1],label = r'$N=2$')
 ax2.plot(ell_binned[:botlim],n3dls_binned[:botlim] - theorydls_binned[:botlim],color=cols[2],label = r'$N=3$')
-ax2.plot(ell_binned_short,n4dls_binned - theorydls_binned[:len(n4dls_binned)],color=cols[3],label = r'$N=4$')
-ax2.plot(ell_binned_short,n5dls_binned - theorydls_binned[:len(n5dls_binned)],color=cols[4],label = r'$N=5$')'''
+ax2.plot(ell_binned[:botlim],n4dls_binned[:botlim] - theorydls_binned[:botlim],color=cols[3],label = r'$N=4$')
+ax2.plot(ell_binned[:botlim],n5dls_binned[:botlim] - theorydls_binned[:botlim],color=cols[4],label = r'$N=5$')
 '''ax2.plot(ell_binned[:botlim],inputdls_binned[:botlim] - theorydls_binned[:botlim],color=cols[1],label = r'NILC')
 ax2.plot(ell_binned[:botlim],smicadls_binned[:botlim] - theorydls_binned[:botlim],color=cols[2],label = r'SMICA')
 ax2.plot(ell_binned[:botlim],commdls_binned[:botlim] - theorydls_binned[:botlim],color=cols[3],label = r'Commander')
@@ -289,6 +335,6 @@ yticks2 = ax2.yaxis.get_major_ticks()
 yticks2[0].label1.set_visible(False)
 yticks2[-1].label1.set_visible(False)
 f2.subplots_adjust(right=0.99)
-plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/ffp8spec_n5_resids5_botpan.pdf')
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/nilcspec_n5_resids5_botpan.pdf')
 
 
