@@ -20,7 +20,15 @@ cols = cols[1:-1:step]
 
 #Latex font settings
 plt.rc('text', usetex=True)
-plt.rc('font', family='serif',size=18.0)
+plt.rc('font', family='serif',size=20.0)
+
+#Increase line thicknesses
+plt.rc('axes', linewidth=2.0)
+plt.rc('xtick.major', width=2.0)
+plt.rc('xtick.minor', width=2.0)
+plt.rc('ytick.major', width=2.0)
+plt.rc('ytick.minor', width=2.0)
+plt.rc('lines', linewidth=2.0)
 
 ##Input
 L = 3600
@@ -55,13 +63,13 @@ ax.axvline(x=3400,ls='--',color='k') #Vertical line at l = 3400
 ax.axvline(x=L,ls='--',color='k') #Vertical line at l_max
 ax.set_xlim([0,pltscal*L])
 ax.set_ylim([0,1.1])
-ax.set_xlabel(r'Multipole $\ell$')
+ax.set_xlabel(r'Multipole $\ell$', labelpad = -1)
 #ax.set_title(r'Harmonic response of wavelet kernels: ($\ell_\mathrm{max} = %i$' % L + r',  $\lambda = %.2f$' % B + r',  $j_\mathrm{min} = %i$' % J_min+ r',  $j_\mathrm{max} = %i$)' % J)
-ax.legend(prop={'size':16},frameon=False)
+ax.legend(prop={'size':16.5},frameon=False)
 
 fig.subplots_adjust(left=0.05,right=0.99)
 
-plt.savefig("/Users/keir/Documents/s2let_ilc_planck/hybrid_wavelets_mnras.pdf") #,bbox_inches='tight')
+plt.savefig("/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/hybrid_wavelets_mnras2.pdf") #,bbox_inches='tight')
 
 '''fig, axs = plt.subplots(Bs.size+2, 1, figsize=(8, 14))
 axs = axs.ravel()
