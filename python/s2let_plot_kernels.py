@@ -163,6 +163,6 @@ for j in xrange(0,4): #J_l-J_min_l+1):
         myplot_moll(f_rot.real, L, axs[j*N+n], title=r'Scale %i, direction %i' % (j+1, n+1), cmap=cmap)
 
 fig.subplots_adjust(wspace=0, hspace=0.2, left=0.01, right=0.99, bottom=0.01, top=0.95)
-plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/wavelets_spatial_mollweide.pdf',dpi=1200)
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/wavelets_spatial_mollweide2.pdf',dpi=400)
 
 

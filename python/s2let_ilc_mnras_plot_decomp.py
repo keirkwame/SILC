@@ -42,7 +42,8 @@ else:
 '''
 
 #Plot array
-fname = '/Users/keir/Documents/planck2015_2_cmb_realisations/planck2015_2_cmb_map_1.fits'
+#fname = '/Users/keir/Documents/planck2015_2_cmb_realisations/planck2015_2_cmb_map_1.fits'
+fname = '/Users/keir/Documents/s2let_ilc_planck/COM_CompMap_dust-commander_0256_R2.00.fits'
 
 f_ini = hp.read_map(fname) # Initial map
 f_lm = hp.map2alm(f_ini, lmax=L-1) # Its alms
@@ -123,9 +124,9 @@ fig.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.95)
 plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/cmb_orig_mollweide.pdf',dpi=1200)'''
 #plt.show()
 
-'''LIM = 300
-hp.mollview(f_ini*1e6,unit=r'$\mu\mathrm{K}$',title=r'Input CMB map',min=-1.*LIM,max=LIM)
-plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/cmb_orig_hp.pdf')'''
+#LIM = 300
+hp.mollview(f_ini,unit=r'$\mu\mathrm{K}$',title=r'Input CMB map',max=1000,norm='log') #,min=-1.*LIM,max=LIM) #*1e6
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/dust_orig_hp.pdf')
 
 # Create giant array figure
 plt.rc('font', family='serif',size=14.0)
@@ -146,7 +147,7 @@ for j in xrange(0,4): #J-J_min+1): #0, J+1):
 # Pretty adjustment
 #fig.subplots_adjust(hspace=0.4, wspace=0.5)
 fig.subplots_adjust(wspace=0, hspace=0.2, left=0.01, right=0.99, bottom=0.01, top=0.95)
-plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/cmb_decomp_mollweide.pdf',dpi=1200)
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/dust_decomp_mollweide.pdf',dpi=400)
 #plt.show()
 
 
