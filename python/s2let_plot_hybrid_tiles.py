@@ -36,7 +36,7 @@ J_min = 0
 Bs = np.array([60,2,1.3,1.2])
 l_transitions = np.array([61,513,2017])
 
-pltscal = 1.35
+pltscal = 1.3 #1.35 for j=Scal.
 
 #Construct valid hybrid tiling
 hybrid_scal_l, hybrid_wav_l, hybrid_scal_bandlimit, hybrid_wav_bandlimits, J, L_bounds = ps.construct_hybrid_tiling(L,J_min,Bs,l_transitions)
@@ -49,7 +49,7 @@ else:
 #cols = dc.get_distinct(7)
 
 fig, ax = plt.subplots(1) #,1, figsize=(12,4))
-ax.plot(hybrid_scal_l,color=cols[0],label=r"$j = \mathrm{Scal.}$")
+ax.plot(hybrid_scal_l,color=cols[0],label=r"$\mathrm{Scal.}$")
 for j in range(J+1):
     if j < 6:
         ax.plot(hybrid_wav_l[:,j],color=cols[j+1],label=r"$j = %i$" % j)
@@ -63,13 +63,13 @@ ax.axvline(x=3400,ls='--',color='k') #Vertical line at l = 3400
 ax.axvline(x=L,ls='--',color='k') #Vertical line at l_max
 ax.set_xlim([0,pltscal*L])
 ax.set_ylim([0,1.1])
-ax.set_xlabel(r'Multipole $\ell$', labelpad = -1)
+ax.set_xlabel(r'Multipole $\ell$', labelpad = -1) #, size = 30.) #Increased size for talk
 #ax.set_title(r'Harmonic response of wavelet kernels: ($\ell_\mathrm{max} = %i$' % L + r',  $\lambda = %.2f$' % B + r',  $j_\mathrm{min} = %i$' % J_min+ r',  $j_\mathrm{max} = %i$)' % J)
-ax.legend(prop={'size':16.5},frameon=False)
+ax.legend(prop={'size':16.5},frameon=False) #16.5 for paper #16. for talk
 
-fig.subplots_adjust(left=0.05,right=0.99)
+fig.subplots_adjust(left=0.05,right=0.99) #,bottom = 0.125) #Bottom for talk
 
-plt.savefig("/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/hybrid_wavelets_mnras2.pdf") #,bbox_inches='tight')
+plt.savefig("/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/hybrid_wavelets_mnras4.pdf") #,bbox_inches='tight')
 
 '''fig, axs = plt.subplots(Bs.size+2, 1, figsize=(8, 14))
 axs = axs.ravel()

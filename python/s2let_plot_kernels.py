@@ -118,7 +118,7 @@ def rotate(flm, L, alpha, beta, gamma, dl_beta):
 ##Input
 L = 128
 B_l = 2
-N = 3
+N = 1 #3
 spin = 0
 J_min_l = 3
 J_l = pys2let_j_max(B_l, L, J_min_l)
@@ -134,7 +134,7 @@ dl_beta = ssht_dl_beta_risbo(beta, L)
 #cmap = plt.get_cmap(cm_plusmin)
 #cmap = CB2cm['BurP']
 cmap = 'coolwarm'
-fig, axs = plt.subplots(4, 3, sharex=True, sharey=True, figsize=(8,6.4))
+fig, axs = plt.subplots(J_l-J_min_l,N, sharex=True, sharey=True, figsize=(8./3.,6.4)) #figsize=(8,6.4)
 #cbar_ax = fig.add_axes([0.93, 0.15, 0.015, 0.7])
 axs = axs.ravel()
 '''j = 0
@@ -163,6 +163,6 @@ for j in xrange(0,4): #J_l-J_min_l+1):
         myplot_moll(f_rot.real, L, axs[j*N+n], title=r'Scale %i, direction %i' % (j+1, n+1), cmap=cmap)
 
 fig.subplots_adjust(wspace=0, hspace=0.2, left=0.01, right=0.99, bottom=0.01, top=0.95)
-plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/wavelets_spatial_mollweide2.pdf',dpi=400)
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/wavelets_spatial_mollweide_n1.pdf',dpi=400)
 
 
