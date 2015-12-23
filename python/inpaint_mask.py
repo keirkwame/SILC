@@ -201,14 +201,14 @@ if __name__ == "__main__":
     hole_map = cp.deepcopy(bad_map)
 
     #Using NILC mask holes and rims
-    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_gauss2400.npy') #Pix no, hole index
+    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_800.npy') #Pix no, hole index
     #holes = holes[:,np.where(holes[1] < 200)[0]] #Limit no. holes for testing
     rims = np.load(holes_dir + 'nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
     #rims = rims[:,np.where(rims[1] < 200)[0]]
 
-    '''hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
-    hole_indices = hole_sizes[0,hole_sizes[1]<900]'''
-    hole_indices = np.unique(holes[1])[1:] #Sorted and unique
+    hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
+    hole_indices = hole_sizes[0,hole_sizes[1]<=800]
+    #hole_indices = np.unique(holes[1])[1:] #Sorted and unique
     print 'No. holes =', len(hole_indices)
 
     #Using query_disc to form holes and rims
