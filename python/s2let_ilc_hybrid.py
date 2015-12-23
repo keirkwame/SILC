@@ -247,8 +247,10 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     del finalmapalmstruncate
     
     #Saving output map
-    if mapsextra[0] >= 0: #Wavelet scales
+    if mapsextra[0] >= 1: #0: #Wavelet scales
         wav_outfits = wav_outfits_root + '_' + wavparam_code + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '.npy'
+    elif mapsextra[0] == 0: #FOR NEW SCALING FUNC
+        wav_outfits = wav_outfits_0 + '_' + wavparam_code + str(mapsextra[0]) + '_n' + str(mapsextra[1]+1) + '.npy'
     else: #Scaling function
         wav_outfits = scal_outfits[:-4] + '.npy'
     np.save(wav_outfits,finalmaphalf)
@@ -281,7 +283,8 @@ if __name__ == "__main__":
         nprocess = 1 #For distributing directions within scale
         nprocess2 = 3 #For doubling maps
         nprocess3 = 4 #For smoothing covariance elements
-        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
+        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/scal_data/'
+        #fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
     elif comp == 1: #Hypatia
         nprocess = 1 #For distributing directions within scale
         nprocess2 = 9 #For doubling maps
@@ -290,14 +293,15 @@ if __name__ == "__main__":
     
     nmaps = 9 #No. maps (Planck = 9)
     ellmax = 300
-    jmin = 0
-    lamdas = np.array([60,2])
+    jmin = 6 #0
+    lamdas = np.array([2,1.9]) #60,2])
     wavparam_code = 'C'
-    l_transitions = np.array([61])
+    l_transitions = np.array([256]) #61])
     ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
-    fitsroot = 'ffp8_diffuse_deconv_tapered_thresh_lmax1300_'
+    fitsroot = 'planck_diffuse_deconv_tapered_thresh_lmax1300_'
+    #fitsroot = 'ffp8_diffuse_deconv_tapered_thresh_lmax3600_'
     fitscode = ['30','44','70','100','143','217','353','545','857']
     scal_fits = [None]*nmaps
     wav_fits_root = [None]*nmaps
@@ -306,9 +310,12 @@ if __name__ == "__main__":
         wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
     outdir = fitsdir
-    outroot = 's2let_ilc_covar15_' + fitsroot
-    scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+    #outroot = 's2let_ilc_covar15_' + fitsroot
+    outroot = 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_'
+    #scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+    scal_outfits = outdir + outroot + 'scal_' + '3600' + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
+    wav_outfits_0 = outdir + outroot + 'wav_' + '3600' + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
     #outputdir = 's2let_ilc_output/' #Subdirectory for secondary output
 
@@ -324,8 +331,8 @@ if __name__ == "__main__":
     scal_output = s2let_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
-    jmin_real = jmin
-    jmax_real = jmax
+    jmin_real = 0 #!= jmin
+    jmax_real = 0
     ndir_min = 0
     ndir_max = ndir - 1
 

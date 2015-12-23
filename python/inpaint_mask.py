@@ -177,8 +177,8 @@ if __name__ == "__main__":
     
     if comp == 0: #Keir's iMac
         nprocess = 4
-        #bad_dir = '/Users/keir/Documents/s2let_ilc_planck/hybrid_data/'
-        bad_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
+        bad_dir = '/Users/keir/Documents/s2let_ilc_planck/scal_data/'
+        #bad_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
         good_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
         holes_dir = '/Users/keir/Documents/s2let_ilc_planck/holes/'
     elif comp == 1: #Hypatia
@@ -189,27 +189,27 @@ if __name__ == "__main__":
         holes_dir = good_dir
     
     nrand = 750
-    ncmb = 2 #nrand + ncmb = 1000
+    ncmb = 1 #nrand + ncmb = 1000
 
-    bad_map = hp.read_map(bad_dir + 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon.fits')
+    bad_map = hp.read_map(bad_dir + 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_6_1_recon.fits')
     #bad_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
-    good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_2.fits')
-    outfits = 's2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_inpaint.fits'
+    good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
+    outfits = 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_6_1_recon_inpaint.fits'
     #outfits = 'planck2015_2_cmb_map_1_inpaint.fits'
     nside = hp.get_nside(bad_map)
     new_map = cp.deepcopy(bad_map)
     hole_map = cp.deepcopy(bad_map)
 
     #Using NILC mask holes and rims
-    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring.npy') #Pix no, hole index
+    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_gauss2400.npy') #Pix no, hole index
     #holes = holes[:,np.where(holes[1] < 200)[0]] #Limit no. holes for testing
     rims = np.load(holes_dir + 'nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
     #rims = rims[:,np.where(rims[1] < 200)[0]]
 
     '''hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
     hole_indices = hole_sizes[0,hole_sizes[1]<900]'''
-    '''hole_indices = np.unique(holes[1]) #Sorted and unique
-    print 'No. holes =', len(hole_indices)'''
+    hole_indices = np.unique(holes[1])[1:] #Sorted and unique
+    print 'No. holes =', len(hole_indices)
 
     #Using query_disc to form holes and rims
     '''k = 0
@@ -237,26 +237,26 @@ if __name__ == "__main__":
     hole_indices = np.unique(holes[1]) #Sorted and unique'''
 
     #Loading random realisations for covariance estimation
-    '''rand_realise = [None]*nrand
+    rand_realise = [None]*nrand
     for i in xrange(nrand):
         print i + ncmb + 1
-        rand_realise[i] = np.load(good_dir + 'planck2015_2_cmb_map_' + str(i+ncmb+1) + '.npy',mmap_mode='r')'''
+        rand_realise[i] = np.load(good_dir + 'planck2015_2_cmb_map_' + str(i+ncmb+1) + '.npy',mmap_mode='r')
     
     #Filling in holes
-    '''pool = mg.Pool(nprocess)
+    pool = mg.Pool(nprocess)
     newvals_list = pool.map(inpaint_para,hole_indices) #Ordered by hole index
     pool.close()
     pool.join()
     newvals_complete = np.concatenate(newvals_list,axis=-1)
     new_map[newvals_complete[0].astype(int)] = newvals_complete[1]
-    hp.write_map(bad_dir + outfits,new_map)'''
+    hp.write_map(bad_dir + outfits,new_map)
 
-    new_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_inpaint2circ.fits')
+    '''new_map = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/hybrid_data/s2let_ilc_planck_deconv_tapered_thresh_lmax3600_3600_hybridC_0_1_recon_inpaint2circ.fits')
 
     resid_map = new_map - bad_map
     hole_map[holes[0]] = np.nan
     hole_mask = np.zeros(hp.nside2npix(nside))
     hole_mask[holes[0]] = 1
-    hole_mask[rims[0]] = 2
+    hole_mask[rims[0]] = 2'''
 
 

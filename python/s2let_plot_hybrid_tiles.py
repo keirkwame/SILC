@@ -15,7 +15,7 @@ for x in np.linspace(0,1, 254):
     cols.append((rcol, gcol, bcol))
 cols.append((1,1,1))
 
-step = len(cols) / 13
+step = len(cols) / 12 #13
 cols = cols[1:-1:step]
 
 #Latex font settings
@@ -31,10 +31,10 @@ plt.rc('ytick.minor', width=2.0)
 plt.rc('lines', linewidth=2.0)
 
 ##Input
-L = 3600
-J_min = 0
-Bs = np.array([60,2,1.3,1.2])
-l_transitions = np.array([61,513,2017])
+L = 3600 #3600
+J_min = 6 #0
+Bs = np.array([2,1.3,1.2])
+l_transitions = np.array([513,2017])
 
 pltscal = 1.3 #1.35 for j=Scal.
 
@@ -65,11 +65,11 @@ ax.set_xlim([0,pltscal*L])
 ax.set_ylim([0,1.1])
 ax.set_xlabel(r'Multipole $\ell$', labelpad = -1) #, size = 30.) #Increased size for talk
 #ax.set_title(r'Harmonic response of wavelet kernels: ($\ell_\mathrm{max} = %i$' % L + r',  $\lambda = %.2f$' % B + r',  $j_\mathrm{min} = %i$' % J_min+ r',  $j_\mathrm{max} = %i$)' % J)
-ax.legend(prop={'size':16.5},frameon=False) #16.5 for paper #16. for talk
+ax.legend(prop={'size':17.5},frameon=False) #16.5 for paper #16. for talk
 
 fig.subplots_adjust(left=0.05,right=0.99) #,bottom = 0.125) #Bottom for talk
 
-plt.savefig("/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/hybrid_wavelets_mnras4.pdf") #,bbox_inches='tight')
+plt.savefig("/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/hybrid_wavelets_mnras5.pdf") #,bbox_inches='tight')
 
 '''fig, axs = plt.subplots(Bs.size+2, 1, figsize=(8, 14))
 axs = axs.ravel()

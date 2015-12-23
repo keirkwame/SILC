@@ -55,21 +55,24 @@ if __name__ == "__main__":
     comp = 0
     
     if comp == 0: #Keir's iMac
-        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
+        fitsdir = '/Users/keir/Documents/s2let_ilc_planck/scal_data/'
+        #fitsdir = '/Users/keir/Documents/s2let_ilc_planck/ffp8_pla_data/'
+        #fitsdir = '/Users/keir/Documents/s2let_ilc_planck/'
     elif comp == 1: #Hypatia
         fitsdir = '/home/keir/s2let_ilc_data/hybrid_data/'
 
     nprocess = 1
     outnside = 256
     ellmax = 300
-    jmin = 0
-    lamdas = np.array([60,2])
+    jmin = 6
+    lamdas = np.array([2,1.9]) #60,2])
     wavparam_code = 'C'
-    l_transitions = np.array([61])
-    ndir = 5 #No. directions for each wavelet scale
+    l_transitions = np.array([256]) #61])
+    ndir = 1 #No. directions for each wavelet scale
     spin = 0 #0 for temp, 1 for spin signals
 
-    fitsroot = 's2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax1300_'
+    fitsroot = 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_'
+    #fitsroot = 's2let_ilc_covar15_ffp8_diffuse_deconv_tapered_thresh_lmax3600_'
     #fitsroot = 'planck2015_2_cmb_map_1_' #TESTING
     scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
