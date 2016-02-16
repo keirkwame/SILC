@@ -173,7 +173,7 @@ if __name__ == "__main__":
     #mask = hp.read_map('/Users/keir/Documents/s2let_ilc_planck/nilc_pr1_builtmask.fits') #0 where holes
 
     #Set directory structure
-    comp = 0
+    comp = 1
     
     if comp == 0: #Keir's iMac
         nprocess = 4
@@ -182,33 +182,33 @@ if __name__ == "__main__":
         good_dir = '/Users/keir/Documents/planck2015_2_cmb_realisations/'
         holes_dir = '/Users/keir/Documents/s2let_ilc_planck/holes/'
     elif comp == 1: #Hypatia
-        nprocess = 2
-        bad_dir = '/home/keir/s2let_ilc_data/hybrid_data/'
+        nprocess = 60
+        bad_dir = '/home/keir/s2let_ilc_data/scal_data/'
         #bad_dir = '/home/keir/s2let_ilc_data/masks/'
         good_dir = '/home/keir/s2let_ilc_data/masks/'
         holes_dir = good_dir
     
-    nrand = 750
+    nrand = 999
     ncmb = 1 #nrand + ncmb = 1000
 
-    bad_map = hp.read_map(bad_dir + 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_6_1_recon.fits')
+    bad_map = hp.read_map(bad_dir + 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_6_5_recon.fits')
     #bad_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
     good_map = hp.read_map(good_dir + 'planck2015_2_cmb_map_1.fits')
-    outfits = 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_6_1_recon_inpaint.fits'
+    outfits = 's2let_ilc_covar15_planck_diffuse_deconv_tapered_thresh_lmax3600_3600_hybridC_6_5_recon_inpaint800.fits'
     #outfits = 'planck2015_2_cmb_map_1_inpaint.fits'
     nside = hp.get_nside(bad_map)
     new_map = cp.deepcopy(bad_map)
     hole_map = cp.deepcopy(bad_map)
 
     #Using NILC mask holes and rims
-    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_gauss2400.npy') #Pix no, hole index
+    holes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring.npy') #Pix no, hole index
     #holes = holes[:,np.where(holes[1] < 200)[0]] #Limit no. holes for testing
     rims = np.load(holes_dir + 'nilc_pr1_builtmask_rims_ring.npy') #Pix no., hole index
     #rims = rims[:,np.where(rims[1] < 200)[0]]
 
-    '''hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
-    hole_indices = hole_sizes[0,hole_sizes[1]<900]'''
-    hole_indices = np.unique(holes[1])[1:] #Sorted and unique
+    hole_sizes = np.load(holes_dir + 'nilc_pr1_builtmask_holes_ring_sizes.npy') #Hole index, hole size
+    hole_indices = hole_sizes[0,hole_sizes[1]<=800]
+    #hole_indices = np.unique(holes[1])[1:] #Sorted and unique
     print 'No. holes =', len(hole_indices)
 
     #Using query_disc to form holes and rims
