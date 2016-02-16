@@ -31,10 +31,10 @@ plt.rc('ytick.minor', width=2.0)
 plt.rc('lines', linewidth=2.0)
 
 ##Input
-L = 3600 #3600
+L = 917 #3600
 J_min = 6 #0
-Bs = np.array([2,1.3,1.2])
-l_transitions = np.array([513,2017])
+Bs = np.array([2,1.3]) #1.3,1.2])
+l_transitions = np.array([513]) #513,2017])
 
 pltscal = 1.3 #1.35 for j=Scal.
 
@@ -69,7 +69,7 @@ ax.legend(prop={'size':17.5},frameon=False) #16.5 for paper #16. for talk
 
 fig.subplots_adjust(left=0.05,right=0.99) #,bottom = 0.125) #Bottom for talk
 
-plt.savefig("/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_temp/hybrid_wavelets_mnras5.pdf") #,bbox_inches='tight')
+plt.savefig("/Users/keir/Documents/spin_silc/testD_wavelets.pdf") #,bbox_inches='tight')
 
 '''fig, axs = plt.subplots(Bs.size+2, 1, figsize=(8, 14))
 axs = axs.ravel()
