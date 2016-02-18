@@ -2,6 +2,7 @@ import numpy as np
 import healpy as hp
 import math as mh
 import pys2let as ps
+import spin_silc_utilities as su
 
 if __name__ == "__main__":
     ##Input
@@ -28,7 +29,7 @@ if __name__ == "__main__":
     scal_tiles, wav_tiles, scal_bandlims, wav_bandlims, jmax, l_bounds = ps.construct_hybrid_tiling(ellmax,jmin,lamdas,l_transitions)
 
     #Remove truncated wavelets
-    ntrunc = 1 #1 or 2
+    ntrunc = 3 #1 or 2
     ellmax = wav_bandlims[-1-1*ntrunc] #Lower total bandlimit to match smallest wavelet
     print "New bandlimit =", ellmax
     scal_tiles = scal_tiles[:ellmax]
@@ -56,9 +57,9 @@ if __name__ == "__main__":
     else:
         print '\nA valid wavelet tiling has been chosen.\n'
 
-    fitsroot = 'spin_silc_fwhm10_planck_pol_diffuse_deconv_'
-    scal_fits = fitsdir + fitsroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
-    wav_fits_root = fitsdir + fitsroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
+    fitsroot = 'spin_silc_fwhm50_planck_pol_diffusePS_deconv_'
+    scal_fits = fitsdir + fitsroot + 'scal_' + '917' + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
+    wav_fits_root = fitsdir + fitsroot + 'wav_' + '917' + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
     outroot = fitsroot
     outfits_root = outdir + outroot + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '_recon'
@@ -113,9 +114,12 @@ if __name__ == "__main__":
     hp.write_map(map_outfits,T_map_dg+dg_maps)
 
     #Masked spectra
-    print "Calculating masked C_l"
-    mask_name = 'NILCconfsky'
-    mask = hp.read_map('/Users/keir/Documents/spin_silc/masks/nilc_pol_conmask_nside512_05thresh.fits') #0 where holes
+    mask_name = 'PSfsky'
+    mask_fn = '/Users/keir/Documents/spin_silc/masks/planck_pol_PSmask_nside512_05thresh.fits' #RING ordering
+    cl_output = su.masked_cl(ellmax,mask_name,mask_fn,outfits_root,final_maps)
+    '''print "Calculating masked C_l"
+    mask_name = 'PSfsky'
+    mask = hp.read_map('/Users/keir/Documents/spin_silc/masks/planck_pol_PSmask_nside512_05thresh.fits') #0 where holes
     #mask = hp.read_map('/Users/keir/Documents/spin_silc/masks/UP78_PR2_nside512_05thresh.fits') #0 where holes
     f_sky = np.sum(mask) / len(mask)
     print "f_sky =", f_sky
@@ -125,7 +129,7 @@ if __name__ == "__main__":
     clsidx = [1,2,4]
     for i in xrange(len(clscode)):
         cl_outfits = outfits_root + '_' + clscode[i] + 'cls_' + mask_name + '.fits'
-        hp.write_cl(cl_outfits,masked_cls[clsidx[i]] * pixrecip * pixrecip / f_sky)
+        hp.write_cl(cl_outfits,masked_cls[clsidx[i]] * pixrecip * pixrecip / f_sky)'''
 
     #Some utilities for quick plotting
     

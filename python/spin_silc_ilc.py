@@ -3,6 +3,7 @@ import healpy as hp
 import math as mh
 import multiprocessing as mg
 import pys2let as ps
+import sys
 
 def smoothworker(i): #(j,n,map_index1,map_index2,smoothing_lmax,scale_fwhm) [map_index2<=map_index1]
     print "Smoothing independent covariance element", i[2], ",", i[3]
@@ -50,7 +51,7 @@ def s2let_ilc(mapsextra): #mapsextra = (j,n)
     #Calculate scale_fwhm for smoothing kernel
     nsamp = 1200.
     npix = ps.mw_size(real_lmax)
-    scale_fwhm = 10. * mh.sqrt(nsamp / npix) #Original was factor of 50
+    scale_fwhm = 50. * mh.sqrt(nsamp / npix) #Original was factor of 50
 
     #Smooth covariance matrices
     nindepelems = int(nmaps*(nmaps+1)*.5) #No. indep. elements in Hermitian covariance matrix
@@ -172,7 +173,7 @@ if __name__ == "__main__":
     else:
         print '\nA valid wavelet tiling has been chosen.\n'
 
-    fitsroot = 'planck_pol_diffuse_deconv_'
+    fitsroot = 'planck_pol_diffusePS_deconv_'
     fitscode = ['30','44','70','100','143','217','353']
     scal_fits = [None]*nmaps
     wav_fits_root = [None]*nmaps
@@ -180,7 +181,7 @@ if __name__ == "__main__":
         scal_fits[i] = fitsdir + fitsroot + fitscode[i] + '_scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
         wav_fits_root[i] = fitsdir + fitsroot + fitscode[i] + '_wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
-    outroot = 'spin_silc_fwhm10_' + fitsroot
+    outroot = 'spin_silc_fwhm50_' + fitsroot
     scal_outfits = outdir + outroot + 'scal_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_outfits_root = outdir + outroot + 'wav_' + str(ellmax) + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
@@ -188,10 +189,10 @@ if __name__ == "__main__":
     scal_output = s2let_ilc((-1,-1)) #(j,n) = (-1,-1) for scaling function
 
     #Run ILC on wavelet maps in PARALLEL
-    jmin_real = 0 #!= jmin
-    jmax_real = jmax
-    ndir_min = 0
-    ndir_max = ndir - 1
+    jmin_real = int(sys.argv[1]) #0 #!= jmin
+    jmax_real = int(sys.argv[2]) #jmax
+    ndir_min = int(sys.argv[3]) #0
+    ndir_max = int(sys.argv[4]) #ndir - 1
 
     for j in xrange(jmin_real,jmax_real+1): #Loop over scales
         for n in xrange(ndir_min,ndir_max+1): #Loop over directions

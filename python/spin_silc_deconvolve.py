@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     #Output map FITS files
     outdir = '/Users/keir/Documents/spin_silc/maps/PR2/deconvolvedMaps/'
-    outroot = 'planck_pol_diffuse_deconv_'
+    outroot = 'planck_pol_diffusePS_deconv_'
     outcode = ['30','44','70','100','143','217','353']
     outend = '_pr2.fits'
     outfits = [None]*nmaps

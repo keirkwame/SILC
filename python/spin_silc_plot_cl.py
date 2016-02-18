@@ -24,7 +24,7 @@ if __name__ == "__main__":
     bin_len = 10
     resid_idx = 3
     
-    fname = '/Users/keir/Documents/spin_silc/plots/EEcls_NILCconfsky_diffuse_fwhm3.pdf'
+    fname = '/Users/keir/Documents/spin_silc/plots/EEcls_PSfsky.pdf'
 
     dlconv = (np.arange(lmin,lmax+1) * (np.arange(lmin,lmax+1) + 1.)) / (2. * mh.pi)
     
@@ -34,15 +34,15 @@ if __name__ == "__main__":
     #pixrecip = np.concatenate((np.ones(2),np.reciprocal(hp.pixwin(1024,pol=True)[1][2:lmax+1])))[2:] #P pixwin #Not defined for l < 2
 
     cls = [None]*ncls
-    cls[0] = hp.read_cl('/Users/keir/Documents/spin_silc/recon_maps/spin_silc_fwhm3_planck_pol_diffuse_deconv_917_hybridTestD_6_1_recon_EEcls_NILCconfsky.fits')[lmin:lmax+1]*1.e12
-    cls[1] = hp.read_cl('/Users/keir/Documents/spin_silc/maps/PR2/compsepMaps/nilc_NILCconfsky_lmax2300_EEcls.fits')[lmin:lmax+1]*1.e12
-    cls[2] = hp.read_cl('/Users/keir/Documents/spin_silc/maps/PR2/compsepMaps/smica_NILCconfsky_lmax2300_EEcls.fits')[lmin:lmax+1]*1.e12
+    cls[0] = hp.read_cl('/Users/keir/Documents/spin_silc/recon_maps/spin_silc_noN_planck_pol_deconv_917_hybridTestD_6_1_recon_EEcls_PSfsky.fits')[lmin:lmax+1]*1.e12
+    cls[1] = hp.read_cl('/Users/keir/Documents/spin_silc/maps/PR2/compsepMaps/nilc_PSfsky_lmax2300_EEcls.fits')[lmin:lmax+1]*1.e12
+    cls[2] = hp.read_cl('/Users/keir/Documents/spin_silc/maps/PR2/compsepMaps/smica_PSfsky_lmax2300_EEcls.fits')[lmin:lmax+1]*1.e12
     cls[3] = (np.loadtxt('/Users/keir/Software/CAMB/planck_lmax2350_totCls.dat',usecols=(2,))[:lmax-1] * planck_beam * planck_beam * filterbeam * filterbeam) / dlconv #(l,TT,EE,BB,TE)
     
     lins = ['-','-','-','--']
     dis_cols = dc.get_distinct(2)
     cols = ['k',dis_cols[0],dis_cols[1],'k']
-    labs = [r'SILC $(N = 1)$ [NILC\_con]',r'NILC [NILC\_con]',r'SMICA [NILC\_con]',r'Theory']
+    labs = [r'SILC $(N = 1)$ [PS mask]',r'NILC [PS mask]',r'SMICA [PS mask]',r'Theory']
 
     dls = cls * dlconv[None,:]
     dls_bin = np.mean(np.reshape(dls,(ncls,-1,bin_len)),axis=-1)

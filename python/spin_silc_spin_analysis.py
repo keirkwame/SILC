@@ -92,7 +92,7 @@ if __name__ == "__main__":
     else:
         print '\nA valid wavelet tiling has been chosen.\n'
 
-    fitsroot = 'planck_pol_diffuse_deconv_'
+    fitsroot = 'planck_pol_diffusePS_deconv_'
     fitscode = ['30','44','70','100','143','217','353']
     fitsend = '_pr2.fits'
     fits = [None]*nmaps

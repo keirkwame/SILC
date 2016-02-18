@@ -17,12 +17,12 @@ if __name__ == "__main__":
     nmaps = 3
     LIM = 1
     
-    fname_root = '/Users/keir/Documents/spin_silc/plots/diffuse_fwhm3_'
+    fname_root = '/Users/keir/Documents/spin_silc/plots/diffusePS_fwhm50_'
 
     maps = [None]*nmaps
     maps[0] = hp.read_map('/Users/keir/Documents/spin_silc/maps/PR2/compsepMaps/smica_QUmaps_dg.fits',field=(1,2)) #SMICA
     maps[1] = hp.read_map('/Users/keir/Documents/spin_silc/maps/PR2/compsepMaps/nilc_QUmaps_dg.fits',field=(1,2)) #NILC
-    maps[2] = hp.read_map('/Users/keir/Documents/spin_silc/recon_maps/spin_silc_fwhm3_planck_pol_diffuse_deconv_917_hybridTestD_6_1_recon_QUmaps_dg.fits',field=(1,2)) #(Q,U) #SILC
+    maps[2] = hp.read_map('/Users/keir/Documents/spin_silc/recon_maps/spin_silc_fwhm50_planck_pol_diffusePS_deconv_917_hybridTestD_6_1_recon_QUmaps_dg.fits',field=(1,2)) #(Q,U) #SILC
     
     labs = [r'SMICA',r'NILC',r'SILC $(N = 1)$']
     fnams = ['smica','nilc','silcN1']
