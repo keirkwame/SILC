@@ -43,20 +43,20 @@ if __name__ == "__main__":
     comp = 0
     
     if comp == 0: #Keir's iMac
-        nprocess = 4
-        fitsdir = '/Users/keir/Documents/spin_silc/maps/PR2/deconvolvedMaps/'
+        nprocess = 1
+        fitsdir = '/Users/keir/Documents/spin_silc/maps/PR2/frequencyMaps/'
         outdir = '/Users/keir/Documents/spin_silc/wavelet_maps/'
     elif comp == 1: #Hypatia
         nprocess = 7
         fitsdir = ''
         outdir = ''
 
-    nmaps = 7
-    ellmax = 917 #300
-    jmin = 6
-    lamdas = np.array([2,1.3]) #60,2
-    l_transitions = np.array([513]) #61,2017
-    wavparam_code = 'TestD'
+    nmaps = 1
+    ellmax = 70 #300
+    jmin = 3
+    lamdas = np.array([2,2.02]) #60,2
+    l_transitions = np.array([65]) #61,2017
+    wavparam_code = 'TestF'
     ndir = 1 #No. directions for each wavelet scale
     spin = 2
 
@@ -80,9 +80,9 @@ if __name__ == "__main__":
     print len(scal_tiles)
     wav_tiles = np.concatenate((wav_tiles,np.zeros((smoothing_lmax-ellmax,len(wav_tiles[0])))))
     print len(wav_tiles), len(wav_tiles[0])
-    scal_bandlims = 2*(scal_bandlims-1) + 1
+    scal_bandlims = smoothing_lmax #2*(scal_bandlims-1) + 1
     print scal_bandlims
-    wav_bandlims = 2*(wav_bandlims-1) + 1
+    wav_bandlims[:] = smoothing_lmax #2*(wav_bandlims-1) + 1
     print wav_bandlims
 
     res = ps.verify_tiling(smoothing_lmax,scal_tiles,wav_tiles.T.ravel(),scal_bandlims,wav_bandlims)
@@ -92,9 +92,9 @@ if __name__ == "__main__":
     else:
         print '\nA valid wavelet tiling has been chosen.\n'
 
-    fitsroot = 'planck_pol_diffusePS_deconv_'
-    fitscode = ['30','44','70','100','143','217','353']
-    fitsend = '_pr2.fits'
+    fitsroot = 'ffp8_cmb_scl_'
+    fitscode = ['353'] #,'044','070','100','143','217','353']
+    fitsend = '_full_map.fits'
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend

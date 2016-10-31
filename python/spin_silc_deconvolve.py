@@ -34,10 +34,10 @@ if __name__ == "__main__":
     #Frequency channel map FITS files
     fitsdir = '/Users/keir/Documents/spin_silc/maps/PR2/diffuseMaps/' #frequencyMaps/'
     fitsprefix = ['LFI','LFI','LFI','HFI','HFI','HFI','HFI']
-    fitsroot = 'planck_pol_diffuse_' #'_SkyMap_'
+    fitsroot = 'ffp8_pol_10pcNoise_diffusePS_' #'_SkyMap_'
     fitscode = ['30','44','70','100','143','217','353'] #['030_1024_R2.01','044_1024_R2.01','070_2048_R2.01','100_2048_R2.02','143_2048_R2.02','217_2048_R2.02','353_2048_R2.02']
-    fitsend = '_pr2_nside' #'_full.fits'
-    fitssuffix = ['1024.fits','1024.fits','2048.fits','2048.fits','2048.fits','2048.fits','2048.fits']
+    fitsend = '_nside' #'_full.fits'
+    fitssuffix = ['1024.fits','1024.fits','1024.fits','2048.fits','2048.fits','2048.fits','2048.fits']
     fits = [None]*nmaps
     for i in xrange(len(fits)):
         fits[i] = fitsdir + fitsroot + fitscode[i] + fitsend + fitssuffix[i]
@@ -53,9 +53,9 @@ if __name__ == "__main__":
 
     #Output map FITS files
     outdir = '/Users/keir/Documents/spin_silc/maps/PR2/deconvolvedMaps/'
-    outroot = 'planck_pol_diffusePS_deconv_'
+    outroot = 'ffp8_pol_10pcNoise_diffusePS_deconv_'
     outcode = ['30','44','70','100','143','217','353']
-    outend = '_pr2.fits'
+    outend = '.fits'
     outfits = [None]*nmaps
     for i in xrange(len(outfits)):
         outfits[i] = outdir + outroot + outcode[i] + outend
@@ -85,9 +85,9 @@ if __name__ == "__main__":
     recipcombbeam[recipcombbeam > 1000.] = 1000.
 
     deconbeam = [None]*len(recipcombbeam)
-    for i in xrange(2): #30 & 44 GHz
+    for i in xrange(3): #30 & 44 GHz #FFP8 LFI
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip1024 #Deconvolving to tapered 5' gaussian beam
-    for i in xrange(2,len(recipcombbeam)): #70 to 353 GHz
+    for i in xrange(3,len(recipcombbeam)): #70 to 353 GHz #FFP8 HFI
         deconbeam[i] = recipcombbeam[i] * smoothbeam * pixrecip2048 #Deconvolving to tapered 5' gaussian beam
 
     #Parallelised SHT to and from harmonic space

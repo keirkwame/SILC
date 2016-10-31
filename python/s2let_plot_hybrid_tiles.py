@@ -15,7 +15,7 @@ for x in np.linspace(0,1, 254):
     cols.append((rcol, gcol, bcol))
 cols.append((1,1,1))
 
-step = len(cols) / 12 #13
+step = len(cols) / 9 #12
 cols = cols[1:-1:step]
 
 #Latex font settings
@@ -31,12 +31,12 @@ plt.rc('ytick.minor', width=2.0)
 plt.rc('lines', linewidth=2.0)
 
 ##Input
-L = 2253 #3600
-J_min = 6 #0
-Bs = np.array([2,1.3,1.1]) #1.3,1.2])
-l_transitions = np.array([513,2017]) #513,2017])
+L = 2253
+J_min = 6
+Bs = np.array([2,1.3,1.1])
+l_transitions = np.array([513,2017])
 
-pltscal = 1.3 #1.35 for j=Scal.
+pltscal = 1.3
 
 #Construct valid hybrid tiling
 hybrid_scal_l, hybrid_wav_l, hybrid_scal_bandlimit, hybrid_wav_bandlimits, J, L_bounds = ps.construct_hybrid_tiling(L,J_min,Bs,l_transitions)
@@ -50,7 +50,7 @@ else:
 
 fig, ax = plt.subplots(1) #,1, figsize=(12,4))
 ax.plot(hybrid_scal_l,color=cols[0],label=r"$\mathrm{Scal.}$")
-for j in range(J+1):
+for j in range(J): #+1
     if j < 6:
         ax.plot(hybrid_wav_l[:,j],color=cols[j+1],label=r"$j = %i$" % j)
         #elif j < 13:
@@ -59,17 +59,18 @@ for j in range(J+1):
         ax.plot(hybrid_wav_l[:,j],color=cols[j+1],label=r"$j = %i$" % j) #Use dashes after dots run out
     else:
         ax.plot(wav_tiles[:,j],'-.',label=r"$j = %i$" % j) #Use dash-dot lines after dashes run out
-ax.axvline(x=3400,ls='--',color='k') #Vertical line at l = 3400
+ax.axvline(x=2048,ls='--',color='k') #Vertical line at l = 2048/3400
 ax.axvline(x=L,ls='--',color='k') #Vertical line at l_max
 ax.set_xlim([0,pltscal*L])
 ax.set_ylim([0,1.1])
 ax.set_xlabel(r'Multipole $\ell$', labelpad = -1) #, size = 30.) #Increased size for talk
+ax.set_ylabel(r'Wavelet harmonic response $\kappa^j_\ell$')
 #ax.set_title(r'Harmonic response of wavelet kernels: ($\ell_\mathrm{max} = %i$' % L + r',  $\lambda = %.2f$' % B + r',  $j_\mathrm{min} = %i$' % J_min+ r',  $j_\mathrm{max} = %i$)' % J)
-ax.legend(prop={'size':17.5},frameon=False) #16.5 for paper #16. for talk
+ax.legend(prop={'size':16.5},frameon=False) #16.5 for paper #16. for talk #17.5
 
-fig.subplots_adjust(left=0.05,right=0.99) #,bottom = 0.125) #Bottom for talk
+fig.subplots_adjust(right=0.99) #,bottom = 0.125) #Bottom for talk
 
-plt.savefig('/Users/keir/Documents/spin_silc/plots/E_wavelets.pdf') #,bbox_inches='tight')
+plt.savefig('/Users/keir/Documents/s2let_ilc_latex/s2let_ilc_papers/s2let_ilc_pol/wavelet_tiles2.pdf') #,bbox_inches='tight')
 
 '''fig, axs = plt.subplots(Bs.size+2, 1, figsize=(8, 14))
 axs = axs.ravel()

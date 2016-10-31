@@ -10,7 +10,7 @@ if __name__ == "__main__":
     comp = 0
     
     if comp == 0: #Keir's iMac
-        fitsdir = '/Users/keir/Documents/spin_silc/ilc_maps/'
+        fitsdir = '/Users/keir/Documents/spin_silc/wavelet_maps/'
         outdir = '/Users/keir/Documents/spin_silc/recon_maps/'
     elif comp == 1: #Hypatia
         fitsdir = ''
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     scal_tiles, wav_tiles, scal_bandlims, wav_bandlims, jmax, l_bounds = ps.construct_hybrid_tiling(ellmax,jmin,lamdas,l_transitions)
 
     #Remove truncated wavelets
-    ntrunc = 3 #1 or 2
+    ntrunc = 1 #1 or 2
     ellmax = wav_bandlims[-1-1*ntrunc] #Lower total bandlimit to match smallest wavelet
     print "New bandlimit =", ellmax
     scal_tiles = scal_tiles[:ellmax]
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     else:
         print '\nA valid wavelet tiling has been chosen.\n'
 
-    fitsroot = 'spin_silc_fwhm50_planck_pol_diffusePS_deconv_'
+    fitsroot = 'ffp8_cmb_scl_353_'
     scal_fits = fitsdir + fitsroot + 'scal_' + '917' + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir) + '.npy'
     wav_fits_root = fitsdir + fitsroot + 'wav_' + '917' + '_hybrid' + wavparam_code + '_' + str(jmin) + '_' + str(ndir)
 
@@ -86,8 +86,16 @@ if __name__ == "__main__":
     ell = np.arange(2,smoothing_lmax)
     newbeam = hp.gauss_beam(mh.radians(10./60.),lmax=smoothing_lmax-1) / hp.gauss_beam(mh.radians(5./60.),lmax=smoothing_lmax-1)
     filterbeam = np.concatenate((np.zeros(20),0.5*(1 - np.cos((mh.pi*(np.arange(20,41)-20))/20)),np.ones(smoothing_lmax-41))) #High-pass filter
-    E_alms_hp = hp.almxfl(ps.lm2lm_hp(e_alms_mw,smoothing_lmax),newbeam*filterbeam) #Reorder and expand to HPX standard
-    B_alms_hp = hp.almxfl(ps.lm2lm_hp(b_alms_mw,smoothing_lmax),newbeam*filterbeam) #Same beams as NILC
+    E_alms_hp = hp.almxfl(ps.lm2lm_hp(e_alms_mw,smoothing_lmax),newbeam) #*filterbeam) #Reorder and expand to HPX standard
+    B_alms_hp = hp.almxfl(ps.lm2lm_hp(b_alms_mw,smoothing_lmax),newbeam) #*filterbeam) #Same beams as NILC
+
+    #E & B maps
+    E_map = hp.alm2map(E_alms_hp,outnside,pixwin=True)
+    B_map = hp.alm2map(B_alms_hp,outnside,pixwin=True)
+    map_outfits = outfits_root + '_Emap.fits'
+    hp.write_map(map_outfits,E_map)
+    map_outfits = outfits_root + '_Bmap.fits'
+    hp.write_map(map_outfits,B_map)
 
     print "Calculating final C_l"
     final_cls = hp.alm2cl((E_alms_hp,B_alms_hp)) #(EE,BB,EB)
@@ -116,7 +124,7 @@ if __name__ == "__main__":
     #Masked spectra
     mask_name = 'PSfsky'
     mask_fn = '/Users/keir/Documents/spin_silc/masks/planck_pol_PSmask_nside512_05thresh.fits' #RING ordering
-    cl_output = su.masked_cl(ellmax,mask_name,mask_fn,outfits_root,final_maps)
+    cl_output = su.masked_cl(ellmax,mask_name,mask_fn,outfits_root,final_maps)'''
     '''print "Calculating masked C_l"
     mask_name = 'PSfsky'
     mask = hp.read_map('/Users/keir/Documents/spin_silc/masks/planck_pol_PSmask_nside512_05thresh.fits') #0 where holes
@@ -129,7 +137,7 @@ if __name__ == "__main__":
     clsidx = [1,2,4]
     for i in xrange(len(clscode)):
         cl_outfits = outfits_root + '_' + clscode[i] + 'cls_' + mask_name + '.fits'
-        hp.write_cl(cl_outfits,masked_cls[clsidx[i]] * pixrecip * pixrecip / f_sky)'''
+        hp.write_cl(cl_outfits,masked_cls[clsidx[i]] * pixrecip * pixrecip / f_sky)
 
     #Some utilities for quick plotting
     
